@@ -2,7 +2,10 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
+	"net/http"
+	"os"
 	"path"
 	"regexp"
 	"strconv"
@@ -56,6 +59,20 @@ var loc *i18n.Localizer
 func locLan(locLanguaged string) {
 	bundle = i18n.NewBundle(language.Chinese)
 	bundle.RegisterUnmarshalFunc("json", json.Unmarshal)
+	_, err := os.Stat("i18n")
+	if err != nil {
+		err := os.Mkdir("i18n", 0666)
+		dropErr(err)
+	}
+	_, err = os.Stat(fmt.Sprintf("i18n/active.%s.json", locLanguaged))
+	if err != nil {
+		resp, err := http.Get(fmt.Sprintf("https://cdn.jsdelivr.net/gh/gaowanliang/DownloadBot/i18n/active.%s.json", locLanguaged))
+		dropErr(err)
+		defer resp.Body.Close()
+		data, err := ioutil.ReadAll(resp.Body)
+		dropErr(err)
+		ioutil.WriteFile(fmt.Sprintf("i18n/active.%s.json", locLanguaged), data, 0644)
+	}
 	rd, err := ioutil.ReadDir("i18n")
 	dropErr(err)
 	for _, fi := range rd {

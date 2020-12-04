@@ -1,3 +1,5 @@
 .history
 config.json
 temp.torrent
+.goreleaser.yml
+dist
