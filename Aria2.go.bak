@@ -1,0 +1,179 @@
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/gorilla/websocket"
+)
+
+var ws *websocket.Conn
+var aria2Secret string
+var msgChan = make(chan []byte)
+
+func newParams(params ...interface{}) []interface{} {
+	var _temp []interface{}
+	if aria2Secret != "" {
+		_temp = append(_temp, "token:"+aria2Secret)
+	}
+	for _, value := range params {
+		_temp = append(_temp, value)
+	}
+	return _temp
+}
+
+func receiveMessage(msg chan []byte) {
+	defer close(msg)
+	for {
+		_, message, err := ws.ReadMessage()
+		if err != nil {
+			log.Println("read:", err)
+			return
+		}
+		log.Printf("recv: %s", message)
+		var jsonObj map[string]interface{}
+		json.Unmarshal(message, &jsonObj)
+		if jsonObj["method"] != nil {
+			switch jsonObj["method"].(string) {
+			case "aria2.onDownloadStart":
+				_temp := jsonObj["params"].([]interface{})
+				SuddenMessageChan <- fmt.Sprintf("[%s] 任务开始下载", strings.Replace(fmt.Sprintln(_temp[0].(map[string]interface{})["gid"]), "\n", "", -1))
+			}
+		}
+		msg <- message
+	}
+}
+
+func ariaReq(method string, params []interface{}) {
+	_i := aria2JSON{
+		Jsonrpc: "2.0",
+		ID:      "aria2conn" + strconv.FormatInt(time.Now().UnixNano(), 10),
+		Method:  method,
+		Params:  params,
+	}
+	//ariaJSON, err := json.Marshal(_i)
+	//dropErr(err)
+	//log.Printf("send: %s", string(ariaJSON))
+	err := ws.WriteJSON(_i)
+	dropErr(err)
+
+	/*
+		var err error
+		if _, err := ws.sen(data); err != nil {
+			log.Panic(err)
+		}
+
+		var msg = make([]byte, 512)
+		var n int
+		if n, err = ws.Read(msg); err != nil {
+			log.Panic(err)
+		}
+		log.Printf("Received: %s.\n", msg[:n])*/
+}
+
+func addURI(msg chan []byte, uri []string) string {
+	ariaReq("aria2.addUri", newParams(uri))
+	msg1 := <-msg
+	var jsonObj map[string]interface{}
+	json.Unmarshal(msg1, &jsonObj)
+	return jsonObj["result"].(string)
+}
+
+func tellStatus(gid string, keys []string) {
+	ariaReq("aria2.tellStatus", newParams(gid, keys))
+}
+
+func getVersion() string {
+	ariaReq("aria2.getVersion", newParams())
+	msg1 := <-msgChan
+	var jsonObj map[string]interface{}
+	json.Unmarshal(msg1, &jsonObj)
+	res := jsonObj["result"].(map[string]interface{})
+	return res["version"].(string)
+}
+
+func listNotifications() {
+	ariaReq("system.listNotifications", newParams())
+}
+
+/*["aria2.addUri","aria2.addTorrent","aria2.getPeers","aria2.addMetalink","aria2.remove","aria2.pause","aria2.forcePause","aria2.pauseAll","aria2.forcePauseAll","aria2.unpause","aria2.unpauseAll","aria2.forceRemove","aria2.changePosition","aria2.tellStatus","aria2.getUris","aria2.getFiles","aria2.getServers","aria2.tellActive","aria2.tellWaiting","aria2.tellStopped","aria2.getOption","aria2.changeUri","aria2.changeOption","aria2.getGlobalOption","aria2.changeGlobalOption","aria2.purgeDownloadResult","aria2.removeDownloadResult","aria2.getVersion","aria2.getSessionInfo","aria2.shutdown","aria2.forceShutdown","aria2.getGlobalStat","aria2.saveSession","system.multicall","system.listMethods","system.listNotifications"]*/
+
+func listMethods() {
+	ariaReq("system.listMethods", newParams())
+}
+func tellActive() []interface{} {
+	ariaReq("aria2.tellActive", newParams())
+	msg1 := <-msgChan
+	var jsonObj map[string]FileDLInfo
+	json.Unmarshal(msg1, &jsonObj)
+	res := jsonObj["result"]
+	allData := make([]interface{}, 0)
+	for _, value := range res {
+		m := make(map[string]string)
+		//paths, fileName := filepath.Split(files)
+		m["GID"] = value.Gid
+		bytes, err := strconv.ParseFloat(value.TotalLength, 64)
+		dropErr(err)
+		m["Size"] = byte2Readable(bytes)
+		completedLength, err := strconv.ParseFloat(value.CompletedLength, 64)
+		dropErr(err)
+		m["Progress"] = strconv.FormatFloat(completedLength*100.0/bytes, 'f', 2, 64) + " %"
+		allData = append(allData, m)
+	}
+	return allData
+}
+func tellWaiting() {
+	ariaReq("aria2.tellWaiting", newParams())
+}
+func tellStopped() []interface{} {
+	ariaReq("aria2.tellStopped", newParams(0, info.MaxIndex))
+	msg1 := <-msgChan
+	var jsonObj map[string]FileDLInfo
+	json.Unmarshal(msg1, &jsonObj)
+	res := jsonObj["result"]
+	allData := make([]interface{}, 0)
+	for _, value := range res {
+		m := make(map[string]string)
+		//paths, fileName := filepath.Split(files)
+		m["GID"] = value.Gid
+		bytes, err := strconv.ParseFloat(value.TotalLength, 64)
+		dropErr(err)
+		m["Size"] = byte2Readable(bytes)
+		completedLength, err := strconv.ParseFloat(value.CompletedLength, 64)
+		dropErr(err)
+		m["Progress"] = strconv.FormatFloat(completedLength*100.0/bytes, 'f', 2, 64) + " %"
+		allData = append(allData, m)
+	}
+	return allData
+}
+
+func ariaConnect(ariaServer string, aria2Key string) {
+	//origin := "http://localhost/"
+	url := ariaServer
+	aria2Secret = aria2Key
+	var err error
+	log.Printf("connecting to %s", url)
+	ws, _, err = websocket.DefaultDialer.Dial(url, nil)
+
+	dropErr(err)
+
+	version := getVersion()
+
+	log.Printf("Aria2 websocket connection established!Aria2 Version:%s", version)
+	log.Println(tellStopped())
+
+	a := make([]string, 1)
+	a[0] = "http://speedtest-tor1.digitalocean.com/100mb.test" //"http://speedtest.fremont.linode.com/100MB-fremont.bin"
+	// https://blog.jimmyho.net/archives/595/
+	//getVersion()
+	//gid := addURI(msg, a)
+	//log.Println(gid)
+	//addURI(a)
+	//log.Println(ws)
+	//emptyArr := make([]string, 0)
+	tellActive()
+}
