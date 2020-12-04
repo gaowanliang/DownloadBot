@@ -16,17 +16,17 @@ func aria2Load() {
 	var err error
 	aria2Rpc, err = rpc.New(context.Background(), info.Aria2Server, info.Aria2Key, time.Second*10, &Aria2Notifier{})
 	dropErr(err)
-	log.Printf("connecting to %s", info.Aria2Server)
+	log.Printf(locText("connectTo"), info.Aria2Server)
 	version, err := aria2Rpc.GetVersion()
 	dropErr(err)
-	log.Printf("Aria2 websocket connection established!Aria2 Version:%s", version.Version)
+	log.Printf(locText("connectSuccess"), version.Version)
 }
 
 func formatTellSomething(info []rpc.StatusInfo, err error) string {
 	dropErr(err)
 	res := ""
 	log.Printf("%+v\n", info)
-	var statusFlag = map[string]string{"active": "进行中", "paused": "暂停中", "complete": "已完成", "removed": "被移除"}
+	var statusFlag = map[string]string{"active": locText("active"), "paused": locText("paused"), "complete": locText("complete"), "removed": locText("removed")}
 	for index, Files := range info {
 		if Files.BitTorrent.Info.Name != "" {
 			m := make(map[string]string)
@@ -45,11 +45,11 @@ func formatTellSomething(info []rpc.StatusInfo, err error) string {
 			m["Speed"] = byte2Readable(downloadSpeed)
 			m["Status"] = statusFlag[Files.Status]
 			if Files.Status == "paused" {
-				res += fmt.Sprintf("GID:%s\n名称: %s\n进度: %s\n大小: %s", m["GID"], m["Name"], m["Progress"], m["Size"])
+				res += fmt.Sprintf(locText("queryInformationFormat1"), m["GID"], m["Name"], m["Progress"], m["Size"])
 			} else if Files.Status == "complete" || Files.Status == "removed" {
-				res += fmt.Sprintf("GID:%s\n名称: %s\n状态: %s\n进度: %s\n大小: %s", m["GID"], m["Name"], m["Status"], m["Progress"], m["Size"])
+				res += fmt.Sprintf(locText("queryInformationFormat2"), m["GID"], m["Name"], m["Status"], m["Progress"], m["Size"])
 			} else {
-				res += fmt.Sprintf("GID:%s\n名称: %s\n进度: %s\n大小: %s\n速度: %s/s", m["GID"], m["Name"], m["Progress"], m["Size"], m["Speed"])
+				res += fmt.Sprintf(locText("queryInformationFormat3"), m["GID"], m["Name"], m["Progress"], m["Size"], m["Speed"])
 			}
 		} else {
 			for _, File := range Files.Files {
@@ -70,11 +70,11 @@ func formatTellSomething(info []rpc.StatusInfo, err error) string {
 				m["Speed"] = byte2Readable(downloadSpeed)
 				m["Status"] = statusFlag[Files.Status]
 				if Files.Status == "paused" {
-					res += fmt.Sprintf("GID:%s\n名称: %s\n进度: %s\n大小: %s", m["GID"], m["Name"], m["Progress"], m["Size"])
+					res += fmt.Sprintf(locText("queryInformationFormat1"), m["GID"], m["Name"], m["Progress"], m["Size"])
 				} else if Files.Status == "complete" || Files.Status == "removed" {
-					res += fmt.Sprintf("GID:%s\n名称: %s\n状态: %s\n进度: %s\n大小: %s", m["GID"], m["Name"], m["Status"], m["Progress"], m["Size"])
+					res += fmt.Sprintf(locText("queryInformationFormat2"), m["GID"], m["Name"], m["Status"], m["Progress"], m["Size"])
 				} else {
-					res += fmt.Sprintf("GID:%s\n名称: %s\n进度: %s\n大小: %s\n速度: %s/s\n线程数:%s", m["GID"], m["Name"], m["Progress"], m["Size"], m["Speed"], m["Threads"])
+					res += fmt.Sprintf(locText("queryInformationFormat3"), m["GID"], m["Name"], m["Progress"], m["Size"], m["Speed"])
 				}
 			}
 		}

@@ -1,8 +1,14 @@
 package main
 
 import (
+	"encoding/json"
+	"io/ioutil"
+	"path"
 	"regexp"
 	"strconv"
+
+	"github.com/nicksnyder/go-i18n/v2/i18n"
+	"golang.org/x/text/language"
 )
 
 func byte2Readable(bytes float64) string {
@@ -42,4 +48,25 @@ func isDownloadType(uri string) int {
 	} else {
 		return 0
 	}
+}
+
+var bundle *i18n.Bundle
+var loc *i18n.Localizer
+
+func locLan(locLanguaged string) {
+	bundle = i18n.NewBundle(language.Chinese)
+	bundle.RegisterUnmarshalFunc("json", json.Unmarshal)
+	rd, err := ioutil.ReadDir("i18n")
+	dropErr(err)
+	for _, fi := range rd {
+		if !fi.IsDir() && path.Ext(fi.Name()) == ".json" {
+			bundle.LoadMessageFile("i18n/" + fi.Name())
+		}
+	}
+	loc = i18n.NewLocalizer(bundle, locLanguaged)
+
+}
+
+func locText(MessageID string) string {
+	return loc.MustLocalize(&i18n.LocalizeConfig{MessageID: MessageID})
 }

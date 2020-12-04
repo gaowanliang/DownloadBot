@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+
 	"io"
 	"log"
 	"net/http"
@@ -16,27 +17,14 @@ import (
 // SuddenMessageChan receive active requests from WebSocket
 var SuddenMessageChan = make(chan string, 3)
 
-var numericKeyboard = tgbotapi.NewReplyKeyboard(
-	tgbotapi.NewKeyboardButtonRow(
-		tgbotapi.NewKeyboardButton("⬇️ 正在下载"),
-		tgbotapi.NewKeyboardButton("⌛️ 正在等待"),
-		tgbotapi.NewKeyboardButton("✅ 已完成/已停止"),
-	),
-	tgbotapi.NewKeyboardButtonRow(
-		tgbotapi.NewKeyboardButton("⏸️ 停止任务"),
-		tgbotapi.NewKeyboardButton("▶️ 继续任务"),
-		tgbotapi.NewKeyboardButton("❌ 移除任务"),
-	),
-)
-
 func setCommands(bot *tgbotapi.BotAPI) {
 	bot.SetMyCommands([]tgbotapi.BotCommand{
 		{
 			Command:     "start",
-			Description: "获取已上线的Aria2服务器，并打开面板",
+			Description: locText("tgCommandStartDes"),
 		}, {
 			Command:     "myid",
-			Description: "获取user-id",
+			Description: locText("tgCommandMyidDes"),
 		},
 	})
 }
@@ -45,8 +33,6 @@ func setCommands(bot *tgbotapi.BotAPI) {
 func SuddenMessage(bot *tgbotapi.BotAPI) {
 	for {
 		a := <-SuddenMessageChan
-		//log.Println("通道进入")
-		//time.Sleep(time.Second * 5)
 		gid := a[2:18]
 		a = strings.ReplaceAll(a, gid, tellName(aria2Rpc.TellStatus(gid)))
 		myID, err := strconv.ParseInt(info.UserID, 10, 64)
@@ -59,12 +45,26 @@ func SuddenMessage(bot *tgbotapi.BotAPI) {
 }
 
 func tgBot(BotKey string, wg *sync.WaitGroup) {
+
+	var numericKeyboard = tgbotapi.NewReplyKeyboard(
+		tgbotapi.NewKeyboardButtonRow(
+			tgbotapi.NewKeyboardButton(locText("nowDownload")),
+			tgbotapi.NewKeyboardButton(locText("nowWaiting")),
+			tgbotapi.NewKeyboardButton(locText("nowOver")),
+		),
+		tgbotapi.NewKeyboardButtonRow(
+			tgbotapi.NewKeyboardButton(locText("pauseTask")),
+			tgbotapi.NewKeyboardButton(locText("resumeTask")),
+			tgbotapi.NewKeyboardButton(locText("removeTask")),
+		),
+	)
+
 	bot, err := tgbotapi.NewBotAPI(BotKey)
 	dropErr(err)
 
 	bot.Debug = false
 
-	log.Printf("Authorized on account %s", bot.Self.UserName)
+	log.Printf(locText("authorizedAccount"), bot.Self.UserName)
 	defer wg.Done()
 	// go receiveMessage(msgChan)
 	go SuddenMessage(bot)
@@ -81,19 +81,19 @@ func tgBot(BotKey string, wg *sync.WaitGroup) {
 			switch task[1] {
 			case "1":
 				aria2Rpc.Pause(task[0])
-				bot.AnswerCallbackQuery(tgbotapi.NewCallback(update.CallbackQuery.ID, "任务已停止"))
+				bot.AnswerCallbackQuery(tgbotapi.NewCallback(update.CallbackQuery.ID, locText("taskNowStop")))
 			case "2":
 				aria2Rpc.Unpause(task[0])
-				bot.AnswerCallbackQuery(tgbotapi.NewCallback(update.CallbackQuery.ID, "任务已恢复"))
+				bot.AnswerCallbackQuery(tgbotapi.NewCallback(update.CallbackQuery.ID, locText("taskNowResume")))
 			case "3":
 				aria2Rpc.ForceRemove(task[0])
-				bot.AnswerCallbackQuery(tgbotapi.NewCallback(update.CallbackQuery.ID, "任务已移除"))
+				bot.AnswerCallbackQuery(tgbotapi.NewCallback(update.CallbackQuery.ID, locText("taskNowRemove")))
 			case "4":
 				aria2Rpc.PauseAll()
-				bot.AnswerCallbackQuery(tgbotapi.NewCallback(update.CallbackQuery.ID, "任务已全部停止"))
+				bot.AnswerCallbackQuery(tgbotapi.NewCallback(update.CallbackQuery.ID, locText("taskNowStopAll")))
 			case "5":
 				aria2Rpc.UnpauseAll()
-				bot.AnswerCallbackQuery(tgbotapi.NewCallback(update.CallbackQuery.ID, "任务已全部恢复"))
+				bot.AnswerCallbackQuery(tgbotapi.NewCallback(update.CallbackQuery.ID, locText("taskNowResumeAll")))
 			}
 			//fmt.Print(update)
 
@@ -105,63 +105,46 @@ func tgBot(BotKey string, wg *sync.WaitGroup) {
 			// 创建新的MessageConfig。我们还没有文本，所以将其留空。
 			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
 			msg.ParseMode = "Markdown"
-			// 从消息中提取命令。
-			switch update.Message.Command() {
-			case "start":
-				version, err := aria2Rpc.GetVersion()
-				dropErr(err)
-				msg.Text = fmt.Sprintf("%s 当前已连接，版本: %s ，请选择一个选项", info.Sign, version.Version)
-				msg.ReplyMarkup = numericKeyboard
-
-			case "help":
-				msg.Text = "🤖 一个控制你的Aria2服务器的Telegram Bot。"
-			case "myid":
-				msg.Text = fmt.Sprintf("你的user-id为 `%d` ", update.Message.Chat.ID)
-			case "status":
-				msg.Text = "I'm ok."
-				//default:
-				//msg.Text = "I don't know that command"
-			}
 
 			switch update.Message.Text {
-			case "⬇️ 正在下载":
+			case locText("nowDownload"):
 				res := formatTellSomething(aria2Rpc.TellActive())
 				if res != "" {
 					msg.Text = res
 				} else {
 					// log.Println(aria2Rpc.TellStatus("42fa911166acf119"))
-					msg.Text = "没有正在进行的任务！"
+					msg.Text = locText("noActiveTask")
 				}
-			case "⌛️ 正在等待":
+			case locText("nowWaiting"):
 				res := formatTellSomething(aria2Rpc.TellWaiting(0, info.MaxIndex))
 				if res != "" {
 					msg.Text = res
 				} else {
-					msg.Text = "没有正在等待的任务！"
+					msg.Text = locText("noWaittingTask")
 				}
-			case "✅ 已完成/已停止":
+			case locText("nowOver"):
 				res := formatTellSomething(aria2Rpc.TellStopped(0, info.MaxIndex))
 				if res != "" {
 					msg.Text = res
 				} else {
-					msg.Text = "没有已完成/已停止的任务！"
+					msg.Text = locText("noOverTask")
 				}
-			case "⏸️ 停止任务":
+			case locText("pauseTask"):
 				InlineKeyboards := make([]tgbotapi.InlineKeyboardButton, 0)
 				for _, value := range formatGidAndName(aria2Rpc.TellActive()) {
 					log.Printf("%s %s", value["GID"], value["Name"])
 					InlineKeyboards = append(InlineKeyboards, tgbotapi.NewInlineKeyboardButtonData(value["Name"], value["GID"]+":1"))
 				}
 				if len(InlineKeyboards) != 0 {
-					msg.Text = "停止哪一个?"
+					msg.Text = locText("stopWhichOne")
 					if len(InlineKeyboards) > 1 {
 						InlineKeyboards = append(InlineKeyboards, tgbotapi.NewInlineKeyboardButtonData("停止全部", "ALL:4"))
 					}
 					msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(InlineKeyboards)
 				} else {
-					msg.Text = "没有正在等待的任务！"
+					msg.Text = locText("noWaittingTask")
 				}
-			case "▶️ 继续任务":
+			case locText("resumeTask"):
 				InlineKeyboards := make([]tgbotapi.InlineKeyboardButton, 0)
 				for _, value := range formatGidAndName(aria2Rpc.TellWaiting(0, info.MaxIndex)) {
 					log.Printf("%s %s", value["GID"], value["Name"])
@@ -169,15 +152,15 @@ func tgBot(BotKey string, wg *sync.WaitGroup) {
 
 				}
 				if len(InlineKeyboards) != 0 {
-					msg.Text = "恢复哪一个?"
+					msg.Text = locText("resumeWhichOne")
 					if len(InlineKeyboards) > 1 {
 						InlineKeyboards = append(InlineKeyboards, tgbotapi.NewInlineKeyboardButtonData("恢复全部", "ALL:5"))
 					}
 					msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(InlineKeyboards)
 				} else {
-					msg.Text = "没有正在下载的任务"
+					msg.Text = locText("noActiveTask")
 				}
-			case "❌ 移除任务":
+			case locText("removeTask"):
 				InlineKeyboards := make([]tgbotapi.InlineKeyboardButton, 0)
 				for _, value := range formatGidAndName(aria2Rpc.TellActive()) {
 					log.Printf("%s %s", value["GID"], value["Name"])
@@ -188,14 +171,14 @@ func tgBot(BotKey string, wg *sync.WaitGroup) {
 					InlineKeyboards = append(InlineKeyboards, tgbotapi.NewInlineKeyboardButtonData(value["Name"], value["GID"]+":3"))
 				}
 				if len(InlineKeyboards) != 0 {
-					msg.Text = "移除哪一个?"
+					msg.Text = locText("removeWhichOne")
 					msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(InlineKeyboards)
 				} else {
-					msg.Text = "没有已完成/已停止的任务"
+					msg.Text = locText("noOverTask")
 				}
 			default:
 				if !download(update.Message.Text) {
-					msg.Text = "未知的下载链接，请重新检查"
+					msg.Text = locText("unknownLink")
 				}
 				if update.Message.Document != nil {
 					bt, _ := bot.GetFileDirectURL(update.Message.Document.FileID)
@@ -212,6 +195,21 @@ func tgBot(BotKey string, wg *sync.WaitGroup) {
 					}
 				}
 			}
+
+			// 从消息中提取命令。
+			switch update.Message.Command() {
+			case "start":
+				version, err := aria2Rpc.GetVersion()
+				dropErr(err)
+				msg.Text = fmt.Sprintf(locText("commandStartRes"), info.Sign, version.Version)
+				msg.ReplyMarkup = numericKeyboard
+
+			case "help":
+				msg.Text = locText("commandHelpRes")
+			case "myid":
+				msg.Text = fmt.Sprintf(locText("commandMyidRes"), update.Message.Chat.ID)
+			}
+
 			if msg.Text != "" {
 				if _, err := bot.Send(msg); err != nil {
 					log.Panic(err)

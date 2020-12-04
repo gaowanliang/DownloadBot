@@ -14,6 +14,7 @@ type Config struct {
 	UserID      string `json:"user-id"`
 	MaxIndex    int    `json:"max-index"`
 	Sign        string `json:"sign"`
+	Language    string `json:"language"`
 }
 
 // Aria2Notifier is Aria2 websocket message

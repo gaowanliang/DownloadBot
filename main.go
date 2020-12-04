@@ -16,16 +16,15 @@ func dropErr(err error) {
 	}
 }
 
-func configLoad() Config {
+func init() {
 	filePtr, err := os.Open("./config.json")
 	dropErr(err)
 	defer filePtr.Close()
-	var info Config
 	decoder := json.NewDecoder(filePtr)
 	err = decoder.Decode(&info)
 	dropErr(err)
-	log.Print("Configuration information loading completed!")
-	return info
+	locLan(info.Language)
+	log.Print(locText("configCompleted"))
 }
 
 func testAria2(rpcc rpc.Client) {
@@ -48,7 +47,6 @@ func testAria2(rpcc rpc.Client) {
 }
 
 func main() {
-	info = configLoad()
 	var wg sync.WaitGroup
 	aria2Load()
 	wg.Add(1)

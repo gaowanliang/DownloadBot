@@ -1,94 +1,93 @@
+[简体中文](README_zh-CN.md) [繁體中文](README_zh-TW.md)
+
 # DownloadBot
 
+(Currently) 🤖  A Telegram Bot that controls your Aria2 server. 
 
-(目前)🤖 一个控制你的Aria2服务器的Telegram Bot。
+## Functions realized
 
+#### Download method
+- [x] Aria2 control
+- [ ] [SimpleTorrent](https://github.com/boypt/simple-torrent) control
+- [ ] qbittorrent control
 
-## 实现
-
-#### 下载方式
-- [x] Aria2 控制
-- [ ] [SimpleTorrent](https://github.com/boypt/simple-torrent) 控制
-- [ ] qbittorrent 控制
-
-#### 机器人协议支持
+#### The robot protocol supports
 - [x] Telegram Bot
-- [ ] 钉钉机器人
+- [ ] DingTalk robot
 
-#### 功能
-- [x] 下载文件
-  - [x] 下载 HTTP/FTP 链接
-  - [x] 下载 Magnet 链接
-  - [x] 下载 BT 文件内的文件
-  - [ ] 自定义的 Torrent/Magnet 下载
-    - [ ] 不下载小于指定大小的文件
-  - [ ] 自适应环境存储空间的 Torrent/Magnet 下载
-    - [ ] 不下载超过存储空间的文件
-    - [ ] 根据存储空间分块多次下载 Torrent/Magnet 内的文件
-- [ ] 上传文件
-  - [ ] 下载完成后，向 OneDrive 上传文件
-  - [ ] 下载完成后，向 Google Drive 上传文件
-  - [ ] 下载完成后，向 Mega 上传文件
-  - [ ] 下载完成后，向 天翼网盘 上传文件
-- [x] 附加其他功能
-  - [ ] 多语言支持
-    - [x] 简体中文
-    - [ ] 英语
-    - [ ] 繁体中文
-    - [ ] 日语
-  - [ ] 无人值守的BT站下载
+#### Function
+- [x] Download files
+  - [x] Download HTTP/FTP link
+  - [x] Download Magnet link
+  - [ ] Download the files in the BT file
+  - [ ] Custom Torrent/Magnet download
+    - [ ] Do not download files smaller than the specified size
+  - [ ] Download Torrent/Magnet according to the size of storage space
+    - [ ] Do not download files that exceed storage space
+    - [ ] Download the files in Torrent/Magnet several times according to the storage space
+- [ ] Upload a file
+  - [ ] Upload the file to OneDrive when the download is complete
+  - [ ] Upload a file to Google Drive when the download is complete
+  - [ ] Upload the file to Mega when the download is complete
+  - [ ] Upload the file to 189Cloud when the download is complete
+- [x] Additional features
+  - [x] Multilingual support
+    - [x] Simplified Chinese
+    - [x] English
+    - [x] Traditional Chinese
+    - [ ] Japanese
+  - [ ] Download of unattended BT station
     - [ ] Nyaa
     - [ ] ThePirateBay
-  - [ ] 其他功能
-    - [ ] 通过演员ID获取在DMM中使用的所有CID
-    - [ ] 查询 "ikoa "中的影片参数(利用mahuateng)
-    - [ ] 通过javlibary演员网址获得所有演员的编号。
-    - [ ] 查询dmm cid信息、预览影片、预览图片。
-    - [ ] 在sukebei中按关键词搜索。
-    - [ ] 根据关键词在dmm中搜索，最多30项。
-    - [ ] 输入dmm链接，列出所有项目。
-    - [ ] 搜索当前dmm热门和最新电影，限制30条(测试版)
+  - [ ] Other functions
+    - [ ] Get all CIDs used in DMM via actor ID
+    - [ ] Query the movie parameters in "ikoa" (using mahuateng).
+    - [ ] Get the numbers of all actors via the javlibary actors' website. 
+    - [ ] Query the dmm cid information, preview the movie, preview the picture. 
+    - [ ] Search by keyword in sukebei. 
+    - [ ] Search in dmm based on keywords, up to 30 items. 
+    - [ ] Enter the dmm link to list all items. 
+    - [ ] Search for current dmm hits and the latest movies, limited to 30 (beta).
 
-## 目前特点
-1. 完全基于触摸，更容易使用，使用这个机器人基本不需要命令。
-2. 实时通知，使用Aria2的Websocket协议进行通信。
-3. 更好的配置文件支持。
+## Current features
+1. Fully touch based, more easy to use, no command required to use this bot.
+2. Real time notification, it's now using Aria2's Websocket protocol to communicate.
+3. Better config file support.
 
-## 开始
+## Setup
 
-1. 通过[@BotFather](https://telegram.me/botfather)创建您自己的bot并使用。
-2. （可选）您所在地区/国家的Telegram被封锁？一定要有一个 **HTTP** proxy启动并运行，您可以设置您的系统环境变量`HTTPS_PROXY`为代理地址来进行代理。
-3. 下载本程序
-4. 在想要执行本程序的根目录配置`config.json`
-5. 运行可执行文件
+1. Create your own bot and get its access token by using [@BotFather](https://telegram.me/botfather)
+2. (Optional) Telegram blocked in your region/country? be sure to have a HTTP proxy up and running,and You can set your system environment variable `HTTPS_ Proxy` is the proxy address.
+3. Download this program
+4. Configure `config.json` at the root of the program that you want to execute.
+5. Run the executable file
 
-## 三种方式传递参数
-您可以通过三种方式将参数传递给`DownloadBot`：
-* [X] 配置文件
-* [ ] Cil 命令行
-* [ ] 系统环境变量
-
+## 3 ways to pass parameters
+You can pass parameters to `DownloadBot in three ways:
+* [X] configuration file
+* [ ] cli
+* [ ] environment variable
 
 Option priorities also follow this order, so cli has the highest priority.
 
-|                             	| Aria2 server    	| Aria2 key    	| Telegram bot key 	| Telegram user id 	 |Max items in range(default 20) 	|
-|-----------------------------	|-----------------	|--------------	|------------------	|------------------	|--------------------------------	|
-| 配置文件 参数   	| aria2-server    	| aria2-key    	| bot-key          	| user-id          	 |max-index                      	|
-| Cil 命令行 参数                  	| --aria2-server  	| --aria2-key  	| --bot-key        	| --user-id        |--max-index                    	|
-| 系统环境变量参数 	| ta.aria2-server 	| ta.aria2-key 	| ta.bot-key       	| ta.user-id       	|ta.max-index                   	|
+|                             | Aria2 server    | Aria2 key    | Telegram bot key | Telegram user id | Max items in range(default 20) | language    |
+|-----------------------------|-----------------|--------------|------------------|------------------|--------------------------------|-------------|
+| configuration file option   | aria2-server    | aria2-key    | bot-key          | user-id          | max-index                      | language    |
+| cli option                  | --aria2-server  | --aria2-key  | --bot-key        | --user-id        | --max-index                    | --language  |
+| environment variable option | ta.aria2-server | ta.aria2-key | ta.bot-key       | ta.user-id       | ta.max-index                   | ta.language |
 
-
-### 配置文件示例
+## Example of a profile
 
 ```json
 {
   "aria2-server": "ws://192.168.1.154:6800/jsonrpc",
   "aria2-key": "xxx",
-  "proxy": "http://127.0.0.1:7890",
   "bot-key": "123456789:xxx",
   "user-id": "123456",
-  "max-index": 10
+  "max-index": 10,
+  "language":"en"
 }
 ```
-如果您不知道您的 `user-id` ，可以将此项留空，在运行这个机器人后输入`/myid`，此机器人就会返回您的`user-id`.
+If you don't know your `user-id`, you can leave this field blank and enter `/myid` after running the robot, and the robot will return your `user-id`
+
 
