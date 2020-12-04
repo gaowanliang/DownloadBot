@@ -9,12 +9,15 @@
 - [x] Aria2 控制
 - [ ] [SimpleTorrent](https://github.com/boypt/simple-torrent) 控制
 - [ ] qbittorrent 控制
+- [ ] 多下載伺服器同時控制
 
 #### 機器人協定支援
 - [x] Telegram Bot
 - [ ] 釘釘機器人
 
 #### 功能
+- [x] 控制伺服器檔
+  - [x] 刪除檔
 - [x] 下載檔案
   - [x] 下載 HTTP/FTP 連結
   - [x] 下載 Magnet 連結
@@ -28,7 +31,7 @@
   - [ ] 下載完成後，向 OneDrive 上傳檔
   - [ ] 下載完成後，向 Google Drive 上傳檔
   - [ ] 下載完成後，向 Mega 上傳檔
-  - [ ] 下載完成後，向 天翼網盤 上傳檔
+  - [ ] 下載完成後，向 天翼網盤 上傳文件
 - [x] 附加其他功能
   - [x] 多語言支援
     - [x] 簡體中文
@@ -61,32 +64,40 @@
 4. 在想要執行本程式的根目錄配置`config.json`
 5. 運行可執行檔
 
-## 三種方式傳遞參數
-您可以通過三種方式將參數傳遞給`DownloadBot`：
-* [X] 設定檔
-* [ ] Cil 命令列
-* [ ] 系統環境變數
-
-Option priorities also follow this order, so cli has the highest priority.
-
-|                  | Aria2 server    | Aria2 key    | Telegram bot key | Telegram user id | Max items in range(default 20) | language    |
-|------------------|-----------------|--------------|------------------|------------------|--------------------------------|-------------|
-| 設定檔 參數      | aria2-server    | aria2-key    | bot-key          | user-id          | max-index                      | language    |
-| Cil 命令列 參數  | --aria2-server  | --aria2-key  | --bot-key        | --user-id        | --max-index                    | --language  |
-| 系統環境變數參數 | ta.aria2-server | ta.aria2-key | ta.bot-key       | ta.user-id       | ta.max-index                   | ta.language |
-
 ### 設定檔示例
 
 ```json
 {
-  "aria2-server": "ws://192.168.1.154:6800/jsonrpc",
-  "aria2-key": "xxx",
-  "bot-key": "123456789:xxx",
-  "user-id": "123456",
-  "max-index": 10,
-  "language":"en"
+    "aria2-server": "ws://127.0.0.1:5800/jsonrpc",
+    "aria2-key": "xxxxxxxx",
+    "bot-key": "123456789:xxxxxxxxx",
+    "user-id": "123456789",
+    "max-index": 10,
+    "sign":"Main Aria2",
+    "language":"zh-CN",
+    "downloadFolder":"C:/aria2/Aria2Data"
 }
 ```
+#### 各項對應解釋
+* aria2-server：aria2伺服器位址，默認使用websocket連接。如果要使用websocket連接aria2，請務必設置`aria2.conf`內的`enable-rpc=true`。如果不是必須，請儘量設置本地的aria2位址，以便於最大化的使用本程式
+* aria2-key：aria2.conf中rpc-secret的值
+* bot-key：Telegram Bot的標識
+* user-id：管理員的ID
+* max-index：下載資訊最大顯示數量，建議10條（以後會改進）
+* sign：此機器人的標識，如果需要多個伺服器連接同一個機器人，通過這一項可以確定具體是哪一台伺服器
+* language：機器人輸出的語言
+* downloadFolder：Aria2下載檔案保存的位址
+
+#### 目前支援的語言及語言標籤
+| 語言     | 標籤  |
+|----------|-------|
+| 英語     | en    |
+| 簡體中文 | zh-CN |
+| 繁體中文 | zh-TW |
+
+當您在`config.json`中填寫上面語言的標籤的時候，程式會自動下載語言包
+
+#### 關於user-id
 如果您不知道您的 `user-id` ，可以將此項留空，在運行這個機器人後輸入`/myid`，此機器人就會返回您的`user-id`.
 
 

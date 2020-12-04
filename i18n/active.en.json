@@ -32,5 +32,12 @@
     "removed": "Removed",
     "queryInformationFormat1": "GID: %s\nName: %s\nProgess: %s\nSize: %s",
     "queryInformationFormat2": "GID: %s\nName: %s\nStatus: %s\nProgess: %s\nSize: %s",
-    "queryInformationFormat3": "GID:%s\nName:%s\nProgess:%s\nSize: %s\nSpeed: %s/s"
+    "queryInformationFormat3": "GID:%s\nName:%s\nProgess:%s\nSize: %s\nSpeed: %s/s",
+    "ResumeAll": "Resume All",
+    "StopAll": "Stop All",
+    "downloadFolderClear": "Delete all files in download folder",
+    "doNotHavePermissionControl": "You do not have permission to control this Bot",
+    "inLocal": "The server you are currently controlling is local, and you can control server files",
+    "removeDownloadFolderAllFile": "Delete all files in download folder",
+    "fileRemoveComplete": "File deleted successfully"
 }

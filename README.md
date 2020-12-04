@@ -10,16 +10,19 @@
 - [x] Aria2 control
 - [ ] [SimpleTorrent](https://github.com/boypt/simple-torrent) control
 - [ ] qbittorrent control
+- [ ] Multi download server control at the same time
 
 #### The robot protocol supports
 - [x] Telegram Bot
-- [ ] DingTalk robot
+- [ ] DingTalk Bot
 
 #### Function
+- [x] Control server files
+  - [x] Delete file
 - [x] Download files
   - [x] Download HTTP/FTP link
   - [x] Download Magnet link
-  - [ ] Download the files in the BT file
+  - [x] Download the files in the BT file
   - [ ] Custom Torrent/Magnet download
     - [ ] Do not download files smaller than the specified size
   - [ ] Download Torrent/Magnet according to the size of storage space
@@ -57,37 +60,45 @@
 ## Setup
 
 1. Create your own bot and get its access token by using [@BotFather](https://telegram.me/botfather)
-2. (Optional) Telegram blocked in your region/country? be sure to have a HTTP proxy up and running,and You can set your system environment variable `HTTPS_ Proxy` is the proxy address.
+2. (Optional) Telegram blocked in your region/country? be sure to have a HTTP proxy up and running,and You can set your system environment variable `HTTPS_Proxy` is the proxy address.
 3. Download this program
 4. Configure `config.json` at the root of the program that you want to execute.
 5. Run the executable file
-
-## 3 ways to pass parameters
-You can pass parameters to `DownloadBot in three ways:
-* [X] configuration file
-* [ ] cli
-* [ ] environment variable
-
-Option priorities also follow this order, so cli has the highest priority.
-
-|                             | Aria2 server    | Aria2 key    | Telegram bot key | Telegram user id | Max items in range(default 20) | language    |
-|-----------------------------|-----------------|--------------|------------------|------------------|--------------------------------|-------------|
-| configuration file option   | aria2-server    | aria2-key    | bot-key          | user-id          | max-index                      | language    |
-| cli option                  | --aria2-server  | --aria2-key  | --bot-key        | --user-id        | --max-index                    | --language  |
-| environment variable option | ta.aria2-server | ta.aria2-key | ta.bot-key       | ta.user-id       | ta.max-index                   | ta.language |
 
 ## Example of a profile
 
 ```json
 {
-  "aria2-server": "ws://192.168.1.154:6800/jsonrpc",
-  "aria2-key": "xxx",
-  "bot-key": "123456789:xxx",
-  "user-id": "123456",
-  "max-index": 10,
-  "language":"en"
+    "aria2-server": "ws://127.0.0.1:5800/jsonrpc",
+    "aria2-key": "xxxxxxxx",
+    "bot-key": "123456789:xxxxxxxxx",
+    "user-id": "123456789",
+    "max-index": 10,
+    "sign":"Main Aria2",
+    "language":"zh-CN",
+    "downloadFolder":"C:/aria2/Aria2Data"
 }
 ```
+#### Corresponding explanations
+* aria2-server : Aria2 server address. Websocket connection is used by default. If you want to use websocket to connect to aria2, be sure to set `enable-rpc=true` in `aria2.conf`. If not necessary, please try to **set the local aria2 address**, in order to maximize the use of this program
+* aria2-key : The value of `rpc-secret` in aria2.conf
+* bot-key : ID of telegram BOT
+* user-id : The ID of the administrator
+* max-index：Maximum display quantity of download information, 10 pieces are recommended (to be improved in the future)
+* sign: Identification of this Bot, If multiple servers are required to connect to the same Bot, the specific server can be determined through this item.
+* language: Language of Bot output
+* downloadFolder: Aria2 download file save address
+
+#### Currently supported languages and language tags
+| Languages           | Tag   |
+|---------------------|-------|
+| English             | en    |
+| Simplified Chinese  | zh-CN |
+| Traditional Chinese | zh-TW |
+
+When you fill in the above language tag in `config.json`, the program will automatically download the language pack
+
+#### About user-id
 If you don't know your `user-id`, you can leave this field blank and enter `/myid` after running the robot, and the robot will return your `user-id`
 
 

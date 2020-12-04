@@ -32,5 +32,12 @@
     "removed": "被移除",
     "queryInformationFormat1": "GID:%s\n名稱: %s\n進度: %s\n大小: %s",
     "queryInformationFormat2": "GID:%s\n名稱: %s\n狀態: %s\n進度: %s\n大小: %s",
-    "queryInformationFormat3": "GID:%s\n名稱: %s\n進度: %s\n大小: %s\n速度: %s/s"
+    "queryInformationFormat3": "GID:%s\n名稱: %s\n進度: %s\n大小: %s\n速度: %s/s",
+    "ResumeAll": "恢復全部",
+    "StopAll": "停止全部",
+    "downloadFolderClear": "刪除下載檔案夾中所有檔",
+    "doNotHavePermissionControl": "您沒有控制此機器人的許可權",
+    "inLocal": "您當前控制的伺服器在本地，可以控制伺服器檔",
+    "removeDownloadFolderAllFile": "刪除下載檔案夾內所有檔",
+    "fileRemoveComplete": "檔刪除成功"
 }

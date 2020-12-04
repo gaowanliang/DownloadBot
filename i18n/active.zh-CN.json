@@ -1,6 +1,6 @@
 {
     "configCompleted": "配置信息加载完成！",
-    "authorizedAccount":"已登入授权账户 %s",
+    "authorizedAccount": "已登入授权账户 %s",
     "nowDownload": "⬇️ 正在下载",
     "nowWaiting": "⌛️ 正在等待",
     "nowOver": "✅ 已完成/已停止",
@@ -32,5 +32,12 @@
     "removed": "被移除",
     "queryInformationFormat1": "GID:%s\n名称: %s\n进度: %s\n大小: %s",
     "queryInformationFormat2": "GID:%s\n名称: %s\n状态: %s\n进度: %s\n大小: %s",
-    "queryInformationFormat3": "GID:%s\n名称: %s\n进度: %s\n大小: %s\n速度: %s/s"
+    "queryInformationFormat3": "GID:%s\n名称: %s\n进度: %s\n大小: %s\n速度: %s/s",
+    "ResumeAll": "恢复全部",
+    "StopAll": "停止全部",
+    "downloadFolderClear": "删除下载文件夹中所有文件",
+    "doNotHavePermissionControl": "您没有控制此机器人的权限",
+    "inLocal": "您当前控制的服务器在本地，可以控制服务器文件",
+    "removeDownloadFolderAllFile": "删除下载文件夹内所有文件",
+    "fileRemoveComplete": "文件删除成功"
 }

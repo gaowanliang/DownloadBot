@@ -8,13 +8,14 @@ import (
 
 // Config 是读入的配置文件的struct
 type Config struct {
-	Aria2Server string `json:"aria2-server"`
-	Aria2Key    string `json:"aria2-key"`
-	BotKey      string `json:"bot-key"`
-	UserID      string `json:"user-id"`
-	MaxIndex    int    `json:"max-index"`
-	Sign        string `json:"sign"`
-	Language    string `json:"language"`
+	Aria2Server    string `json:"aria2-server"`
+	Aria2Key       string `json:"aria2-key"`
+	BotKey         string `json:"bot-key"`
+	UserID         string `json:"user-id"`
+	MaxIndex       int    `json:"max-index"`
+	Sign           string `json:"sign"`
+	Language       string `json:"language"`
+	DownloadFolder string `json:"downloadFolder"`
 }
 
 // Aria2Notifier is Aria2 websocket message

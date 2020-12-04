@@ -45,19 +45,24 @@ func SuddenMessage(bot *tgbotapi.BotAPI) {
 }
 
 func tgBot(BotKey string, wg *sync.WaitGroup) {
+	Keyboards := make([][]tgbotapi.KeyboardButton, 0)
+	Keyboards = append(Keyboards, tgbotapi.NewKeyboardButtonRow(
+		tgbotapi.NewKeyboardButton(locText("nowDownload")),
+		tgbotapi.NewKeyboardButton(locText("nowWaiting")),
+		tgbotapi.NewKeyboardButton(locText("nowOver")),
+	))
+	Keyboards = append(Keyboards, tgbotapi.NewKeyboardButtonRow(
+		tgbotapi.NewKeyboardButton(locText("pauseTask")),
+		tgbotapi.NewKeyboardButton(locText("resumeTask")),
+		tgbotapi.NewKeyboardButton(locText("removeTask")),
+	))
+	if isLocal(info.Aria2Server) {
+		Keyboards = append(Keyboards, tgbotapi.NewKeyboardButtonRow(
+			tgbotapi.NewKeyboardButton(locText("removeDownloadFolderAllFile")),
+		))
+	}
 
-	var numericKeyboard = tgbotapi.NewReplyKeyboard(
-		tgbotapi.NewKeyboardButtonRow(
-			tgbotapi.NewKeyboardButton(locText("nowDownload")),
-			tgbotapi.NewKeyboardButton(locText("nowWaiting")),
-			tgbotapi.NewKeyboardButton(locText("nowOver")),
-		),
-		tgbotapi.NewKeyboardButtonRow(
-			tgbotapi.NewKeyboardButton(locText("pauseTask")),
-			tgbotapi.NewKeyboardButton(locText("resumeTask")),
-			tgbotapi.NewKeyboardButton(locText("removeTask")),
-		),
-	)
+	var numericKeyboard = tgbotapi.NewReplyKeyboard(Keyboards...)
 
 	bot, err := tgbotapi.NewBotAPI(BotKey)
 	dropErr(err)
@@ -101,113 +106,138 @@ func tgBot(BotKey string, wg *sync.WaitGroup) {
 		}
 
 		if update.Message != nil { //
-
-			// 创建新的MessageConfig。我们还没有文本，所以将其留空。
 			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
 			msg.ParseMode = "Markdown"
+			if fmt.Sprint(update.Message.Chat.ID) == info.UserID {
 
-			switch update.Message.Text {
-			case locText("nowDownload"):
-				res := formatTellSomething(aria2Rpc.TellActive())
-				if res != "" {
-					msg.Text = res
-				} else {
-					// log.Println(aria2Rpc.TellStatus("42fa911166acf119"))
-					msg.Text = locText("noActiveTask")
-				}
-			case locText("nowWaiting"):
-				res := formatTellSomething(aria2Rpc.TellWaiting(0, info.MaxIndex))
-				if res != "" {
-					msg.Text = res
-				} else {
-					msg.Text = locText("noWaittingTask")
-				}
-			case locText("nowOver"):
-				res := formatTellSomething(aria2Rpc.TellStopped(0, info.MaxIndex))
-				if res != "" {
-					msg.Text = res
-				} else {
-					msg.Text = locText("noOverTask")
-				}
-			case locText("pauseTask"):
-				InlineKeyboards := make([]tgbotapi.InlineKeyboardButton, 0)
-				for _, value := range formatGidAndName(aria2Rpc.TellActive()) {
-					log.Printf("%s %s", value["GID"], value["Name"])
-					InlineKeyboards = append(InlineKeyboards, tgbotapi.NewInlineKeyboardButtonData(value["Name"], value["GID"]+":1"))
-				}
-				if len(InlineKeyboards) != 0 {
-					msg.Text = locText("stopWhichOne")
-					if len(InlineKeyboards) > 1 {
-						InlineKeyboards = append(InlineKeyboards, tgbotapi.NewInlineKeyboardButtonData("停止全部", "ALL:4"))
+				// 创建新的MessageConfig。我们还没有文本，所以将其留空。
+
+				switch update.Message.Text {
+				case locText("nowDownload"):
+					res := formatTellSomething(aria2Rpc.TellActive())
+					if res != "" {
+						msg.Text = res
+					} else {
+						msg.Text = locText("noActiveTask")
 					}
-					msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(InlineKeyboards)
-				} else {
-					msg.Text = locText("noWaittingTask")
-				}
-			case locText("resumeTask"):
-				InlineKeyboards := make([]tgbotapi.InlineKeyboardButton, 0)
-				for _, value := range formatGidAndName(aria2Rpc.TellWaiting(0, info.MaxIndex)) {
-					log.Printf("%s %s", value["GID"], value["Name"])
-					InlineKeyboards = append(InlineKeyboards, tgbotapi.NewInlineKeyboardButtonData(value["Name"], value["GID"]+":2"))
-
-				}
-				if len(InlineKeyboards) != 0 {
-					msg.Text = locText("resumeWhichOne")
-					if len(InlineKeyboards) > 1 {
-						InlineKeyboards = append(InlineKeyboards, tgbotapi.NewInlineKeyboardButtonData("恢复全部", "ALL:5"))
+				case locText("nowWaiting"):
+					res := formatTellSomething(aria2Rpc.TellWaiting(0, info.MaxIndex))
+					if res != "" {
+						msg.Text = res
+					} else {
+						msg.Text = locText("noWaittingTask")
 					}
-					msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(InlineKeyboards)
-				} else {
-					msg.Text = locText("noActiveTask")
-				}
-			case locText("removeTask"):
-				InlineKeyboards := make([]tgbotapi.InlineKeyboardButton, 0)
-				for _, value := range formatGidAndName(aria2Rpc.TellActive()) {
-					log.Printf("%s %s", value["GID"], value["Name"])
-					InlineKeyboards = append(InlineKeyboards, tgbotapi.NewInlineKeyboardButtonData(value["Name"], value["GID"]+":3"))
-				}
-				for _, value := range formatGidAndName(aria2Rpc.TellWaiting(0, info.MaxIndex)) {
-					log.Printf("%s %s", value["GID"], value["Name"])
-					InlineKeyboards = append(InlineKeyboards, tgbotapi.NewInlineKeyboardButtonData(value["Name"], value["GID"]+":3"))
-				}
-				if len(InlineKeyboards) != 0 {
-					msg.Text = locText("removeWhichOne")
-					msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(InlineKeyboards)
-				} else {
-					msg.Text = locText("noOverTask")
-				}
-			default:
-				if !download(update.Message.Text) {
-					msg.Text = locText("unknownLink")
-				}
-				if update.Message.Document != nil {
-					bt, _ := bot.GetFileDirectURL(update.Message.Document.FileID)
-					resp, err := http.Get(bt)
-					dropErr(err)
-					defer resp.Body.Close()
-					out, err := os.Create("temp.torrent")
-					dropErr(err)
-					defer out.Close()
-					_, err = io.Copy(out, resp.Body)
-					dropErr(err)
-					if download("temp.torrent") {
-						msg.Text = ""
+				case locText("nowOver"):
+					res := formatTellSomething(aria2Rpc.TellStopped(0, info.MaxIndex))
+					if res != "" {
+						msg.Text = res
+					} else {
+						msg.Text = locText("noOverTask")
+					}
+				case locText("pauseTask"):
+					InlineKeyboardss := make([][]tgbotapi.InlineKeyboardButton, 0)
+
+					for _, value := range formatGidAndName(aria2Rpc.TellActive()) {
+						log.Printf("%s %s", value["GID"], value["Name"])
+						InlineKeyboards := make([]tgbotapi.InlineKeyboardButton, 0)
+						InlineKeyboards = append(InlineKeyboards, tgbotapi.NewInlineKeyboardButtonData(value["Name"], value["GID"]+":1"))
+						InlineKeyboardss = append(InlineKeyboardss, InlineKeyboards)
+					}
+					if len(InlineKeyboardss) != 0 {
+						msg.Text = locText("stopWhichOne")
+						if len(InlineKeyboardss) > 1 {
+							InlineKeyboards := make([]tgbotapi.InlineKeyboardButton, 0)
+							InlineKeyboards = append(InlineKeyboards, tgbotapi.NewInlineKeyboardButtonData(locText("StopAll"), "ALL:4"))
+							InlineKeyboardss = append(InlineKeyboardss, InlineKeyboards)
+						}
+						msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(InlineKeyboardss...)
+					} else {
+						msg.Text = locText("noWaittingTask")
+					}
+				case locText("resumeTask"):
+					InlineKeyboardss := make([][]tgbotapi.InlineKeyboardButton, 0)
+
+					for _, value := range formatGidAndName(aria2Rpc.TellWaiting(0, info.MaxIndex)) {
+						log.Printf("%s %s", value["GID"], value["Name"])
+						InlineKeyboards := make([]tgbotapi.InlineKeyboardButton, 0)
+						InlineKeyboards = append(InlineKeyboards, tgbotapi.NewInlineKeyboardButtonData(value["Name"], value["GID"]+":2"))
+						InlineKeyboardss = append(InlineKeyboardss, InlineKeyboards)
+					}
+					if len(InlineKeyboardss) != 0 {
+						msg.Text = locText("resumeWhichOne")
+						if len(InlineKeyboardss) > 1 {
+							InlineKeyboards := make([]tgbotapi.InlineKeyboardButton, 0)
+							InlineKeyboards = append(InlineKeyboards, tgbotapi.NewInlineKeyboardButtonData(locText("ResumeAll"), "ALL:5"))
+							InlineKeyboardss = append(InlineKeyboardss, InlineKeyboards)
+						}
+						msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(InlineKeyboardss...)
+					} else {
+						msg.Text = locText("noActiveTask")
+					}
+				case locText("removeTask"):
+					InlineKeyboardss := make([][]tgbotapi.InlineKeyboardButton, 0)
+					for _, value := range formatGidAndName(aria2Rpc.TellActive()) {
+						log.Printf("%s %s", value["GID"], value["Name"])
+						InlineKeyboards := make([]tgbotapi.InlineKeyboardButton, 0)
+						InlineKeyboards = append(InlineKeyboards, tgbotapi.NewInlineKeyboardButtonData(value["Name"], value["GID"]+":3"))
+						InlineKeyboardss = append(InlineKeyboardss, InlineKeyboards)
+					}
+					for _, value := range formatGidAndName(aria2Rpc.TellWaiting(0, info.MaxIndex)) {
+						log.Printf("%s %s", value["GID"], value["Name"])
+						InlineKeyboards := make([]tgbotapi.InlineKeyboardButton, 0)
+						InlineKeyboards = append(InlineKeyboards, tgbotapi.NewInlineKeyboardButtonData(value["Name"], value["GID"]+":3"))
+						InlineKeyboardss = append(InlineKeyboardss, InlineKeyboards)
+					}
+					if len(InlineKeyboardss) != 0 {
+						msg.Text = locText("removeWhichOne")
+						msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(InlineKeyboardss...)
+					} else {
+						msg.Text = locText("noOverTask")
+					}
+				case locText("removeDownloadFolderAllFile"):
+					dropErr(RemoveContents(info.DownloadFolder))
+					msg.Text = locText("fileRemoveComplete")
+				default:
+					if !download(update.Message.Text) {
+						msg.Text = locText("unknownLink")
+					}
+					if update.Message.Document != nil {
+						bt, _ := bot.GetFileDirectURL(update.Message.Document.FileID)
+						resp, err := http.Get(bt)
+						dropErr(err)
+						defer resp.Body.Close()
+						out, err := os.Create("temp.torrent")
+						dropErr(err)
+						defer out.Close()
+						_, err = io.Copy(out, resp.Body)
+						dropErr(err)
+						if download("temp.torrent") {
+							msg.Text = ""
+						}
 					}
 				}
-			}
 
-			// 从消息中提取命令。
-			switch update.Message.Command() {
-			case "start":
-				version, err := aria2Rpc.GetVersion()
-				dropErr(err)
-				msg.Text = fmt.Sprintf(locText("commandStartRes"), info.Sign, version.Version)
-				msg.ReplyMarkup = numericKeyboard
+				// 从消息中提取命令。
+				switch update.Message.Command() {
+				case "start":
+					version, err := aria2Rpc.GetVersion()
+					dropErr(err)
+					msg.Text = fmt.Sprintf(locText("commandStartRes"), info.Sign, version.Version)
+					if isLocal(info.Aria2Server) {
+						msg.Text += "\n" + locText("inLocal")
+					}
+					msg.ReplyMarkup = numericKeyboard
 
-			case "help":
-				msg.Text = locText("commandHelpRes")
-			case "myid":
-				msg.Text = fmt.Sprintf(locText("commandMyidRes"), update.Message.Chat.ID)
+				case "help":
+					msg.Text = locText("commandHelpRes")
+				case "myid":
+					msg.Text = fmt.Sprintf(locText("commandMyidRes"), update.Message.Chat.ID)
+				}
+			} else {
+				msg.Text = locText("doNotHavePermissionControl")
+				if update.Message.Command() == "myid" {
+					msg.Text = fmt.Sprintf(locText("commandMyidRes"), update.Message.Chat.ID)
+				}
 			}
 
 			if msg.Text != "" {

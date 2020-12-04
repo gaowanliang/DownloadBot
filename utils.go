@@ -7,8 +7,10 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"path/filepath"
 	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"golang.org/x/text/language"
@@ -57,9 +59,12 @@ var bundle *i18n.Bundle
 var loc *i18n.Localizer
 
 func locLan(locLanguaged string) {
+	_, err := os.Stat(info.DownloadFolder)
+	dropErr(err)
+
 	bundle = i18n.NewBundle(language.Chinese)
 	bundle.RegisterUnmarshalFunc("json", json.Unmarshal)
-	_, err := os.Stat("i18n")
+	_, err = os.Stat("i18n")
 	if err != nil {
 		err := os.Mkdir("i18n", 0666)
 		dropErr(err)
@@ -86,4 +91,27 @@ func locLan(locLanguaged string) {
 
 func locText(MessageID string) string {
 	return loc.MustLocalize(&i18n.LocalizeConfig{MessageID: MessageID})
+}
+
+func isLocal(uri string) bool {
+	return strings.Contains(uri, "127.0.0.1") || strings.Contains(uri, "localhost")
+}
+
+func RemoveContents(dir string) error {
+	d, err := os.Open(dir)
+	if err != nil {
+		return err
+	}
+	defer d.Close()
+	names, err := d.Readdirnames(-1)
+	if err != nil {
+		return err
+	}
+	for _, name := range names {
+		err = os.RemoveAll(filepath.Join(dir, name))
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }

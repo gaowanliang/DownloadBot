@@ -11,12 +11,15 @@
 - [x] Aria2 控制
 - [ ] [SimpleTorrent](https://github.com/boypt/simple-torrent) 控制
 - [ ] qbittorrent 控制
+- [ ] 多下载服务器同时控制
 
 #### 机器人协议支持
 - [x] Telegram Bot
 - [ ] 钉钉机器人
 
 #### 功能
+- [x] 控制服务器文件
+  - [x] 删除文件
 - [x] 下载文件
   - [x] 下载 HTTP/FTP 链接
   - [x] 下载 Magnet 链接
@@ -63,33 +66,39 @@
 4. 在想要执行本程序的根目录配置`config.json`
 5. 运行可执行文件
 
-## 三种方式传递参数
-您可以通过三种方式将参数传递给`DownloadBot`：
-* [X] 配置文件
-* [ ] Cil 命令行
-* [ ] 系统环境变量
-
-
-Option priorities also follow this order, so cli has the highest priority.
-
-|                             	| Aria2 server    	| Aria2 key    	| Telegram bot key 	| Telegram user id 	 |Max items in range(default 20) 	|language|
-|-----------------------------	|-----------------	|--------------	|------------------	|------------------	|--------------------------------	|---|
-| 配置文件 参数   	| aria2-server    	| aria2-key    	| bot-key          	| user-id          	 |max-index                      	|language|
-| Cil 命令行 参数                  	| --aria2-server  	| --aria2-key  	| --bot-key        	| --user-id        |--max-index                    	|--language|
-| 系统环境变量参数 	| ta.aria2-server 	| ta.aria2-key 	| ta.bot-key       	| ta.user-id       	|ta.max-index                   	|ta.language|
-
-
 ### 配置文件示例
 
 ```json
 {
-  "aria2-server": "ws://192.168.1.154:6800/jsonrpc",
-  "aria2-key": "xxx",
-  "bot-key": "123456789:xxx",
-  "user-id": "123456",
-  "max-index": 10,
-  "language":"en"
+    "aria2-server": "ws://127.0.0.1:5800/jsonrpc",
+    "aria2-key": "xxxxxxxx",
+    "bot-key": "123456789:xxxxxxxxx",
+    "user-id": "123456789",
+    "max-index": 10,
+    "sign":"Main Aria2",
+    "language":"zh-CN",
+    "downloadFolder":"C:/aria2/Aria2Data"
 }
 ```
+#### 各项对应解释
+* aria2-server：aria2服务器地址，默认使用websocket连接。如果要使用websocket连接aria2，请务必设置`aria2.conf`内的`enable-rpc=true`。如果不是必须，请尽量设置本地的aria2地址，以便于最大化的使用本程序
+* aria2-key：aria2.conf中rpc-secret的值
+* bot-key：Telegram Bot的标识
+* user-id：管理员的ID
+* max-index：下载信息最大显示数量，建议10条（以后会改进）
+* sign：此机器人的标识，如果需要多个服务器连接同一个机器人，通过这一项可以确定具体是哪一台服务器
+* language：机器人输出的语言
+* downloadFolder：Aria2下载文件保存的地址
+
+#### 目前支持的语言及语言标签
+| 语言     | 标签  |
+|----------|-------|
+| 英语     | en    |
+| 简体中文 | zh-CN |
+| 繁体中文 | zh-TW |
+
+当您在`config.json`中填写上面语言的标签的时候，程序会自动下载语言包
+
+#### 关于user-id
 如果您不知道您的 `user-id` ，可以将此项留空，在运行这个机器人后输入`/myid`，此机器人就会返回您的`user-id`.
 
