@@ -39,5 +39,18 @@
     "doNotHavePermissionControl": "您没有控制此机器人的权限",
     "inLocal": "您当前控制的服务器在本地，可以控制服务器文件",
     "removeDownloadFolderAllFile": "删除下载文件夹内所有文件",
-    "fileRemoveComplete": "文件删除成功"
+    "fileRemoveComplete": "文件删除成功",
+    "tgCommandsetTorrentOrMagnetDownloadModeDes": "设置Torrent/Magnet下载模式",
+    "selectATMMode": "选择一个Torrent/Magnet下载模式",
+    "tmMode1": "只下载最大的文件",
+    "tmMode2": "智能选择大文件",
+    "tmMode3": "自定义下载文件",
+    "nowTMMode": "当前Torrent/Magnet下载模式为：",
+    "setTMMode": "已设置当前Torrent/Magnet下载模式为：",
+    "onDownloadStartDes": "%s 任务开始下载！",
+    "onDownloadPauseDes": "%s 任务暂停！",
+    "onDownloadStopDes": "%s 任务被停止！",
+    "onDownloadCompleteDes": "%s 任务已完成！",
+    "onDownloadErrorDes": "%s 任务发生错误！",
+    "onBtDownloadCompleteDes": "BT 任务 %s 已完成！"
 }

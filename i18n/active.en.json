@@ -39,5 +39,18 @@
     "doNotHavePermissionControl": "You do not have permission to control this Bot",
     "inLocal": "The server you are currently controlling is local, and you can control server files",
     "removeDownloadFolderAllFile": "Delete all files in download folder",
-    "fileRemoveComplete": "File deleted successfully"
+    "fileRemoveComplete": "File deleted successfully",
+    "tgCommandsetTorrentOrMagnetDownloadModeDes": "Set Torrent/Magnet download mode",
+    "selectATMMode": "Select a Torrent/Magnet download mode",
+    "tmMode1": "Download only the largest files",
+    "tmMode2": "Intelligent selection of large files",
+    "tmMode3": "Custom download file",
+    "nowTMMode": "The current Torrent/Magnet download mode is:",
+    "setTMMode": "The current Torrent/Magnet download mode has been set to:",
+    "onDownloadStartDes": "%s Download started!",
+    "onDownloadPauseDes": "%s Download paused!",
+    "onDownloadStopDes": "Download stopped!",
+    "onDownloadCompleteDes": "%s Download completed!",
+    "onDownloadErrorDes": "%s Download error!",
+    "onBtDownloadCompleteDes": "BT %s Download completed!"
 }

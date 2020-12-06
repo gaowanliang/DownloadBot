@@ -12,7 +12,7 @@
 - [ ] qbittorrent control
 - [ ] Multi download server control at the same time
 
-#### The robot protocol supports
+#### The Bot protocol supports
 - [x] Telegram Bot
 - [ ] DingTalk Bot
 
@@ -23,14 +23,15 @@
   - [x] Download HTTP/FTP link
   - [x] Download Magnet link
   - [x] Download the files in the BT file
-  - [ ] Custom Torrent/Magnet download
-    - [ ] Do not download files smaller than the specified size
+  - [x] Custom Torrent/Magnet download
+    - [x] Download only the largest files
+    - [x] Do not download files smaller than the specified size
   - [ ] Download Torrent/Magnet according to the size of storage space
     - [ ] Do not download files that exceed storage space
     - [ ] Download the files in Torrent/Magnet several times according to the storage space
 - [ ] Upload a file
   - [ ] Upload the file to OneDrive when the download is complete
-  - [ ] Upload a file to Google Drive when the download is complete
+  - [ ] Upload the file to Google Drive when the download is complete
   - [ ] Upload the file to Mega when the download is complete
   - [ ] Upload the file to 189Cloud when the download is complete
 - [x] Additional features
@@ -81,7 +82,7 @@
 ```
 #### Corresponding explanations
 * aria2-server : Aria2 server address. Websocket connection is used by default. If you want to use websocket to connect to aria2, be sure to set `enable-rpc=true` in `aria2.conf`. If not necessary, please try to **set the local aria2 address**, in order to maximize the use of this program
-* aria2-key : The value of `rpc-secret` in aria2.conf
+* aria2-key : The value of `rpc-secret` in `aria2.conf`
 * bot-key : ID of telegram BOT
 * user-id : The ID of the administrator
 * max-index：Maximum display quantity of download information, 10 pieces are recommended (to be improved in the future)
@@ -99,6 +100,6 @@
 When you fill in the above language tag in `config.json`, the program will automatically download the language pack
 
 #### About user-id
-If you don't know your `user-id`, you can leave this field blank and enter `/myid` after running the robot, and the robot will return your `user-id`
+If you don't know your `user-id`, you can leave this field blank and enter `/myid` after running the Bot, and the Bot will return your `user-id`
 
 

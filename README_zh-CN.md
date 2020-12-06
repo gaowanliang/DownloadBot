@@ -24,8 +24,9 @@
   - [x] 下载 HTTP/FTP 链接
   - [x] 下载 Magnet 链接
   - [x] 下载 BT 文件内的文件
-  - [ ] 自定义的 Torrent/Magnet 下载
-    - [ ] 不下载小于指定大小的文件
+  - [x] 智能 Torrent/Magnet 下载方式
+    - [x] 只下载最大的文件
+    - [x] 不下载小于指定大小的文件
   - [ ] 自适应环境存储空间的 Torrent/Magnet 下载
     - [ ] 不下载超过存储空间的文件
     - [ ] 根据存储空间分块多次下载 Torrent/Magnet 内的文件
@@ -82,7 +83,7 @@
 ```
 #### 各项对应解释
 * aria2-server：aria2服务器地址，默认使用websocket连接。如果要使用websocket连接aria2，请务必设置`aria2.conf`内的`enable-rpc=true`。如果不是必须，请尽量设置本地的aria2地址，以便于最大化的使用本程序
-* aria2-key：aria2.conf中rpc-secret的值
+* aria2-key：`aria2.conf`中`rpc-secret`的值
 * bot-key：Telegram Bot的标识
 * user-id：管理员的ID
 * max-index：下载信息最大显示数量，建议10条（以后会改进）

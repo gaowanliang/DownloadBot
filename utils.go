@@ -89,15 +89,19 @@ func locLan(locLanguaged string) {
 
 }
 
-func locText(MessageID string) string {
-	return loc.MustLocalize(&i18n.LocalizeConfig{MessageID: MessageID})
+func locText(MessageIDs ...string) string {
+	res := ""
+	for _, MessageID := range MessageIDs {
+		res += loc.MustLocalize(&i18n.LocalizeConfig{MessageID: MessageID})
+	}
+	return res
 }
 
 func isLocal(uri string) bool {
 	return strings.Contains(uri, "127.0.0.1") || strings.Contains(uri, "localhost")
 }
 
-func RemoveContents(dir string) error {
+func removeContents(dir string) error {
 	d, err := os.Open(dir)
 	if err != nil {
 		return err
@@ -114,4 +118,10 @@ func RemoveContents(dir string) error {
 		}
 	}
 	return nil
+}
+
+func toInt(text string) int {
+	i, err := strconv.Atoi(text)
+	dropErr(err)
+	return i
 }
