@@ -4,6 +4,11 @@
 
 (Currently) 🤖  A Telegram Bot that controls your Aria2 server. 
 
+## Project significance
+This project is mainly to use small hard disk server for offline downloading, for large bt files to be downloaded in sections according to the size of the hard disk, each time downloading a part, then uploading the network disk, delete and then download the other parts, until all the files are downloaded.
+
+At the same time, communication via the bot protocol facilitates use on machines that cannot intranet penetration, and simplifies the usual use of download programs for added convenience.
+
 ## Functions realized
 
 #### Download method
@@ -14,23 +19,26 @@
 
 #### The Bot protocol supports
 - [x] Telegram Bot
+- [ ] Tencent QQ (Use regular QQ users to interact)
 - [ ] DingTalk Bot
+
 
 #### Function
 - [x] Control server files
   - [x] Delete file
+  - [ ] Move/Copy file
 - [x] Download files
   - [x] Download HTTP/FTP link
   - [x] Download Magnet link
   - [x] Download the files in the BT file
   - [x] Custom Torrent/Magnet download
-    - [x] Download only the largest files
-    - [x] Do not download files smaller than the specified size
+    - [x] Select only the largest file to download
+    - [x] Intelligent file selection based on file size, do not select small files in Torrent/Magnet.
   - [ ] Download Torrent/Magnet according to the size of storage space
     - [ ] Do not download files that exceed storage space
     - [ ] Download the files in Torrent/Magnet several times according to the storage space
-- [ ] Upload a file
-  - [ ] Upload the file to OneDrive when the download is complete
+- [x] Upload a file
+  - [x] Upload the file to OneDrive when the download is complete
   - [ ] Upload the file to Google Drive when the download is complete
   - [ ] Upload the file to Mega when the download is complete
   - [ ] Upload the file to 189Cloud when the download is complete
@@ -40,7 +48,7 @@
     - [x] English
     - [x] Traditional Chinese
     - [ ] Japanese
-  - [ ] Download of unattended BT station
+  - [ ] No human intervention, fully automatic downloads of BT site
     - [ ] Nyaa
     - [ ] ThePirateBay
   - [ ] Other functions

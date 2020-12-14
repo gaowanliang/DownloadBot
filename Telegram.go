@@ -20,8 +20,10 @@ var SuddenMessageChan = make(chan string, 3)
 // TMSelectMessageChan receive active requests from WebSocket
 var TMSelectMessageChan = make(chan string, 3)
 
+var FileControlChan = make(chan string, 3)
+
 func setCommands(bot *tgbotapi.BotAPI) {
-	bot.SetMyCommands([]tgbotapi.BotCommand{
+	_ = bot.SetMyCommands([]tgbotapi.BotCommand{
 		{
 			Command:     "start",
 			Description: locText("tgCommandStartDes"),
@@ -90,9 +92,9 @@ func TMSelectMessage(bot *tgbotapi.BotAPI) {
 					lastFilesInfo[0][2] = "true"
 				}
 			case "tmMode1":
-				bigestFileIndex := selectBigestFile(gid)
+				biggestFileIndex := selectBigestFile(gid)
 				for i := 0; i < len(lastFilesInfo); i++ {
-					if i != bigestFileIndex {
+					if i != biggestFileIndex {
 						lastFilesInfo[i][2] = "false"
 					} else {
 						lastFilesInfo[i][2] = "true"
@@ -145,15 +147,15 @@ func TMSelectMessage(bot *tgbotapi.BotAPI) {
 			Keyboards = append(Keyboards, inlineKeyBoardRow)
 		}
 		inlineKeyBoardRow = make([]tgbotapi.InlineKeyboardButton, 0)
-		inlineKeyBoardRow = append(inlineKeyBoardRow, tgbotapi.NewInlineKeyboardButtonData("🌝 全选", gid+"~selectAll"+":7"))
-		inlineKeyBoardRow = append(inlineKeyBoardRow, tgbotapi.NewInlineKeyboardButtonData("🌚 反选", gid+"~invert"+":8"))
+		inlineKeyBoardRow = append(inlineKeyBoardRow, tgbotapi.NewInlineKeyboardButtonData(locText("selectAll"), gid+"~selectAll"+":7"))
+		inlineKeyBoardRow = append(inlineKeyBoardRow, tgbotapi.NewInlineKeyboardButtonData(locText("invert"), gid+"~invert"+":7"))
 		Keyboards = append(Keyboards, inlineKeyBoardRow)
 		inlineKeyBoardRow = make([]tgbotapi.InlineKeyboardButton, 0)
 		inlineKeyBoardRow = append(inlineKeyBoardRow, tgbotapi.NewInlineKeyboardButtonData(locText("tmMode1"), gid+"~tmMode1"+":7"))
 		inlineKeyBoardRow = append(inlineKeyBoardRow, tgbotapi.NewInlineKeyboardButtonData(locText("tmMode2"), gid+"~tmMode2"+":7"))
 		Keyboards = append(Keyboards, inlineKeyBoardRow)
 		inlineKeyBoardRow = make([]tgbotapi.InlineKeyboardButton, 0)
-		inlineKeyBoardRow = append(inlineKeyBoardRow, tgbotapi.NewInlineKeyboardButtonData("🚀 开始下载", gid+"~Start"+":9"))
+		inlineKeyBoardRow = append(inlineKeyBoardRow, tgbotapi.NewInlineKeyboardButtonData(locText("startDownload"), gid+"~Start"+":7"))
 		Keyboards = append(Keyboards, inlineKeyBoardRow)
 		myID, err := strconv.ParseInt(info.UserID, 10, 64)
 		dropErr(err)
@@ -170,6 +172,72 @@ func TMSelectMessage(bot *tgbotapi.BotAPI) {
 			bot.Send(newMsg)
 		}
 
+	}
+}
+
+func removeFiles(bot *tgbotapi.BotAPI) {
+	s := <-FileControlChan
+	if s == "file" {
+		FileControlChan <- "file"
+	}
+	var MessageID = 0
+	var filesSelect = make(map[int]bool)
+	fileList, _ := GetAllFile(info.DownloadFolder)
+	for {
+		a := <-FileControlChan
+		if a == "close" {
+			return
+		}
+		b := strings.Split(a, "~")
+		fileTree := ""
+
+		if len(b) == 1 {
+			filesSelect = make(map[int]bool)
+			for i := 1; i <= len(fileList); i++ {
+				filesSelect[i] = true
+			}
+			fileTree, filesSelect = printFolderTree(info.DownloadFolder, filesSelect, "0")
+		} else {
+			fileTree, filesSelect = printFolderTree(info.DownloadFolder, filesSelect, b[1])
+		}
+
+		text := fmt.Sprintf("%s 的文件目录如下：\n", info.DownloadFolder) + fileTree
+		Keyboards := make([][]tgbotapi.InlineKeyboardButton, 0)
+		inlineKeyBoardRow := make([]tgbotapi.InlineKeyboardButton, 0)
+		index := 1
+		for _, _ = range fileList {
+			inlineKeyBoardRow = append(inlineKeyBoardRow, tgbotapi.NewInlineKeyboardButtonData(fmt.Sprint(index), "file~"+fmt.Sprint(index)+":8"))
+			if index%7 == 0 {
+				Keyboards = append(Keyboards, inlineKeyBoardRow)
+				inlineKeyBoardRow = make([]tgbotapi.InlineKeyboardButton, 0)
+			}
+			index++
+		}
+		text += "请选择您要删除的文件"
+		if len(inlineKeyBoardRow) != 0 {
+			Keyboards = append(Keyboards, inlineKeyBoardRow)
+		}
+		inlineKeyBoardRow = make([]tgbotapi.InlineKeyboardButton, 0)
+		inlineKeyBoardRow = append(inlineKeyBoardRow, tgbotapi.NewInlineKeyboardButtonData(locText("selectAll"), "file~selectAll"+":9"))
+		inlineKeyBoardRow = append(inlineKeyBoardRow, tgbotapi.NewInlineKeyboardButtonData(locText("invert"), "file~invert"+":9"))
+		Keyboards = append(Keyboards, inlineKeyBoardRow)
+		inlineKeyBoardRow = make([]tgbotapi.InlineKeyboardButton, 0)
+		inlineKeyBoardRow = append(inlineKeyBoardRow, tgbotapi.NewInlineKeyboardButtonData(locText("confirmDelete"), "file~Delete"+":9"))
+		inlineKeyBoardRow = append(inlineKeyBoardRow, tgbotapi.NewInlineKeyboardButtonData(locText("cancel"), "file~cancel"+":9"))
+		Keyboards = append(Keyboards, inlineKeyBoardRow)
+		myID, err := strconv.ParseInt(info.UserID, 10, 64)
+		dropErr(err)
+		msg := tgbotapi.NewMessage(myID, text)
+		if MessageID == 0 {
+			msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(Keyboards...)
+			res, err := bot.Send(msg)
+			dropErr(err)
+			MessageID = res.MessageID
+
+		} else {
+			newMsg := tgbotapi.NewEditMessageTextAndMarkup(myID, MessageID, text, tgbotapi.NewInlineKeyboardMarkup(Keyboards...))
+			bot.Send(newMsg)
+		}
 	}
 }
 
@@ -215,6 +283,7 @@ func createFunctionInlineKeyBoardRow(functionInfos ...FunctionInlineKeyboards) [
 	}
 	return Keyboards
 }
+
 func tgBot(BotKey string, wg *sync.WaitGroup) {
 	Keyboards := make([][]tgbotapi.KeyboardButton, 0)
 	Keyboards = append(Keyboards, tgbotapi.NewKeyboardButtonRow(
@@ -229,7 +298,13 @@ func tgBot(BotKey string, wg *sync.WaitGroup) {
 	))
 	if isLocal(info.Aria2Server) {
 		Keyboards = append(Keyboards, tgbotapi.NewKeyboardButtonRow(
-			tgbotapi.NewKeyboardButton(locText("removeDownloadFolderAllFile")),
+			tgbotapi.NewKeyboardButton(locText("removeDownloadFolderFiles")),
+		))
+		Keyboards = append(Keyboards, tgbotapi.NewKeyboardButtonRow(
+			tgbotapi.NewKeyboardButton(locText("uploadDownloadFolderFiles")),
+		))
+		Keyboards = append(Keyboards, tgbotapi.NewKeyboardButtonRow(
+			tgbotapi.NewKeyboardButton(locText("moveDownloadFolderFiles")),
 		))
 	}
 
@@ -250,7 +325,6 @@ func tgBot(BotKey string, wg *sync.WaitGroup) {
 	setCommands(bot)
 	updates, err := bot.GetUpdatesChan(u)
 	dropErr(err)
-
 	for update := range updates {
 		if update.CallbackQuery != nil {
 			task := strings.Split(update.CallbackQuery.Data, ":")
@@ -274,11 +348,19 @@ func tgBot(BotKey string, wg *sync.WaitGroup) {
 			case "6":
 				TMSelectMessageChan <- task[0]
 				b := strings.Split(task[0], "~")
-				bot.AnswerCallbackQuery(tgbotapi.NewCallback(update.CallbackQuery.ID, "已选择 "+b[1]))
+				bot.AnswerCallbackQuery(tgbotapi.NewCallback(update.CallbackQuery.ID, locText("selected")+b[1]))
 			case "7":
 				TMSelectMessageChan <- task[0]
-				bot.AnswerCallbackQuery(tgbotapi.NewCallback(update.CallbackQuery.ID, "操作成功"))
+				bot.AnswerCallbackQuery(tgbotapi.NewCallback(update.CallbackQuery.ID, locText("operationSuccess")))
+			case "8":
+				FileControlChan <- task[0]
+				b := strings.Split(task[0], "~")
+				bot.AnswerCallbackQuery(tgbotapi.NewCallback(update.CallbackQuery.ID, locText("selected")+b[1]))
+			case "9":
+				FileControlChan <- task[0]
+				bot.AnswerCallbackQuery(tgbotapi.NewCallback(update.CallbackQuery.ID, locText("operationSuccess")))
 			}
+
 			//fmt.Print(update)
 
 			//bot.Send(tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, update.CallbackQuery.Data))
@@ -314,7 +396,6 @@ func tgBot(BotKey string, wg *sync.WaitGroup) {
 						msg.Text = locText("noOverTask")
 					}
 				case locText("pauseTask"):
-
 					InlineKeyboards, text := createFilesInlineKeyBoardRow(FilesInlineKeyboards{
 						GidAndName: formatGidAndName(aria2Rpc.TellActive()),
 						Data:       "1",
@@ -364,9 +445,17 @@ func tgBot(BotKey string, wg *sync.WaitGroup) {
 					} else {
 						msg.Text = locText("noOverTask")
 					}
-				case locText("removeDownloadFolderAllFile"):
-					dropErr(removeContents(info.DownloadFolder))
-					msg.Text = locText("fileRemoveComplete")
+				case locText("removeDownloadFolderFiles"):
+					//dropErr(removeContents(info.DownloadFolder))
+					FileControlChan <- "close"
+					go removeFiles(bot)
+					FileControlChan <- "file"
+				case locText("uploadDownloadFolderFiles"):
+					//msg.Text = printFolderTree(info.DownloadFolder)
+					//msg.ParseMode = ""
+					//dropErr(removeContents(info.DownloadFolder))
+					//go removeFiles(bot)
+					//FileControlChan <- "file"
 				case locText("tmMode1"):
 					aria2Set.TMMode = "1"
 					msg.Text = locText("setTMMode", "tmMode1")

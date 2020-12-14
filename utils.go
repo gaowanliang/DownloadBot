@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"path"
@@ -11,6 +12,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	goTree "v2/gotree"
 
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"golang.org/x/text/language"
@@ -18,8 +20,8 @@ import (
 
 func byte2Readable(bytes float64) string {
 	const kb float64 = 1024
-	const mb float64 = kb * 1024
-	const gb float64 = mb * 1024
+	const mb = kb * 1024
+	const gb = mb * 1024
 	var readable float64
 	var unit string
 	_bytes := bytes
@@ -41,7 +43,7 @@ func byte2Readable(bytes float64) string {
 }
 
 func isDownloadType(uri string) int {
-	httpFtp, _ := regexp.MatchString(`^(https?|ftps?):\/\/.*$`, uri)
+	httpFtp, _ := regexp.MatchString(`^(https?|ftps?)://.*$`, uri)
 	magnet, _ := regexp.MatchString(`(?i)magnet:\?xt=urn:[a-z0-9]+:[a-z0-9]{32}`, uri)
 	btFile, _ := regexp.MatchString(`\.torrent$`, uri)
 	if httpFtp {
@@ -58,7 +60,7 @@ func isDownloadType(uri string) int {
 var bundle *i18n.Bundle
 var loc *i18n.Localizer
 
-func locLan(locLanguaged string) {
+func locLan(locLanguage string) {
 	_, err := os.Stat(info.DownloadFolder)
 	dropErr(err)
 
@@ -69,14 +71,14 @@ func locLan(locLanguaged string) {
 		err := os.Mkdir("i18n", 0666)
 		dropErr(err)
 	}
-	_, err = os.Stat(fmt.Sprintf("i18n/active.%s.json", locLanguaged))
+	_, err = os.Stat(fmt.Sprintf("i18n/active.%s.json", locLanguage))
 	if err != nil {
-		resp, err := http.Get(fmt.Sprintf("https://cdn.jsdelivr.net/gh/gaowanliang/DownloadBot/i18n/active.%s.json", locLanguaged))
+		resp, err := http.Get(fmt.Sprintf("https://cdn.jsdelivr.net/gh/gaowanliang/DownloadBot/i18n/active.%s.json", locLanguage))
 		dropErr(err)
 		defer resp.Body.Close()
 		data, err := ioutil.ReadAll(resp.Body)
 		dropErr(err)
-		ioutil.WriteFile(fmt.Sprintf("i18n/active.%s.json", locLanguaged), data, 0644)
+		ioutil.WriteFile(fmt.Sprintf("i18n/active.%s.json", locLanguage), data, 0644)
 	}
 	rd, err := ioutil.ReadDir("i18n")
 	dropErr(err)
@@ -85,7 +87,7 @@ func locLan(locLanguaged string) {
 			bundle.LoadMessageFile("i18n/" + fi.Name())
 		}
 	}
-	loc = i18n.NewLocalizer(bundle, locLanguaged)
+	loc = i18n.NewLocalizer(bundle, locLanguage)
 
 }
 
@@ -120,8 +122,192 @@ func removeContents(dir string) error {
 	return nil
 }
 
+func GetAllFile(pathname string) ([][]string, int64) {
+	if pathname[:len(pathname)-1] != "/" {
+		pathname += "/"
+	}
+	rd, err := ioutil.ReadDir(pathname)
+	dropErr(err)
+	res := make([][]string, 0)
+	//
+	totalSize := int64(0)
+	for _, fi := range rd {
+		if fi.IsDir() {
+			ret, subSize := GetAllFile(pathname + fi.Name())
+			totalSize += subSize
+			res = append(res, ret...)
+		} else {
+			var fileNameAndSize = []string{pathname + fmt.Sprintln(fi.Name()), fmt.Sprint(fi.Size())}
+			res = append(res, fileNameAndSize)
+			totalSize += fi.Size()
+		}
+	}
+	var fileNameAndSize = []string{pathname + fmt.Sprintln(pathname), fmt.Sprint(totalSize)}
+	res = append(res, fileNameAndSize)
+	return res, totalSize
+}
+
+func generateFolderTree(pathname string, boot int, fileSelect map[int]bool, selectFileIndex string, parentSelected int8) (goTree.Tree, [][]string, map[int]bool) {
+	index := boot
+	if pathname[:len(pathname)-1] != "/" {
+		pathname += "/"
+	}
+	rd, err := ioutil.ReadDir(pathname)
+	dropErr(err)
+	res := make([][]string, 0)
+	totalSize := 0
+	treeFolder := make([]goTree.Tree, 0)
+	treeFiles := make([]string, 0)
+	trueFileSelect := make(map[int]bool, 0)
+	subList := make(map[int]bool)
+	var artist goTree.Tree
+	bootSelect := int8(0)
+	if selectFileIndex == fmt.Sprint(boot) || parentSelected != 0 {
+		if fileSelect[boot] || parentSelected == -1 {
+			bootSelect = -1 // 其下皆不选
+			trueFileSelect[boot] = false
+			artist = goTree.New(fmt.Sprintf("⬜%d:%s * %s", boot, path.Base(pathname), byte2Readable(toFloat64(fmt.Sprint(fmt.Sprint(totalSize))))))
+		} else {
+			bootSelect = 1 // 其下皆选
+			trueFileSelect[boot] = true
+			artist = goTree.New(fmt.Sprintf("✅%d:%s * %s", boot, path.Base(pathname), byte2Readable(toFloat64(fmt.Sprint(fmt.Sprint(totalSize))))))
+		}
+	}
+	for _, fi := range rd {
+		//log.Println(fi.Name())
+		if fi.IsDir() {
+			index++
+			ret, filesInfo, subTrueFileSelect := generateFolderTree(pathname+fi.Name(), index, fileSelect, selectFileIndex, bootSelect)
+			subFolderSize := 0
+			for _, iSize := range filesInfo {
+				subFolderSize += toInt(iSize[1])
+			}
+
+			var folderNameAndSize = []string{pathname + fi.Name(), fmt.Sprint(subFolderSize)}
+			res = append(res, folderNameAndSize)
+			res = append(res, filesInfo...)
+			treeFolder = append(treeFolder, ret)
+			totalSize += subFolderSize
+			for k, v := range subTrueFileSelect {
+
+				trueFileSelect[k] = v
+			}
+
+			subList[index] = subTrueFileSelect[index]
+			index += len(filesInfo)
+		} else {
+			treeFiles = append(treeFiles, fmt.Sprintf("%s * %s", fi.Name(), byte2Readable(toFloat64(fmt.Sprint(fi.Size())))))
+			var fileNameAndSize = []string{pathname + fmt.Sprintln(fi.Name()), fmt.Sprint(fi.Size())}
+			res = append(res, fileNameAndSize)
+			totalSize += int(fi.Size())
+		}
+	}
+
+	tempIndex := index
+	for _, _ = range treeFiles {
+		index++
+		if selectFileIndex == "selectAll" {
+			trueFileSelect[index] = true
+		} else if selectFileIndex == "invert" || selectFileIndex == fmt.Sprint(index) {
+			trueFileSelect[index] = !fileSelect[index]
+		} else if bootSelect == 1 {
+			trueFileSelect[index] = true
+		} else if bootSelect == -1 {
+			trueFileSelect[index] = false
+		} else {
+			trueFileSelect[index] = fileSelect[index]
+		}
+		subList[index] = trueFileSelect[index]
+	}
+	index = tempIndex
+
+	if selectFileIndex == "selectAll" {
+		artist = goTree.New(fmt.Sprintf("✅%d:%s * %s", boot, path.Base(pathname), byte2Readable(toFloat64(fmt.Sprint(fmt.Sprint(totalSize))))))
+		trueFileSelect[boot] = true
+	} else if selectFileIndex == "invert" {
+		artist = goTree.New(fmt.Sprintf("⬜%d:%s * %s", boot, path.Base(pathname), byte2Readable(toFloat64(fmt.Sprint(fmt.Sprint(totalSize))))))
+		trueFileSelect[boot] = false
+	} else if _, al := trueFileSelect[toInt(selectFileIndex)]; al {
+		artist = goTree.New(fmt.Sprintf("⬜%d:%s * %s", boot, path.Base(pathname), byte2Readable(toFloat64(fmt.Sprint(fmt.Sprint(totalSize))))))
+		if fileSelect[boot] {
+			trueFileSelect[boot] = false
+		} else {
+			if !trueFileSelect[toInt(selectFileIndex)] {
+				trueFileSelect[boot] = false
+			} else {
+				selectAllOthers := true
+				for k, v := range subList {
+					if k == toInt(selectFileIndex) {
+						continue
+					}
+					if !v {
+						selectAllOthers = false
+						break
+					}
+				}
+				if selectAllOthers {
+					trueFileSelect[boot] = true
+					artist = goTree.New(fmt.Sprintf("✅%d:%s * %s", boot, path.Base(pathname), byte2Readable(toFloat64(fmt.Sprint(fmt.Sprint(totalSize))))))
+				} else {
+					trueFileSelect[boot] = false
+				}
+			}
+		}
+	} else if selectFileIndex == fmt.Sprint(boot) || parentSelected != 0 {
+		if fileSelect[boot] || parentSelected == -1 {
+			artist = goTree.New(fmt.Sprintf("⬜%d:%s * %s", boot, path.Base(pathname), byte2Readable(toFloat64(fmt.Sprint(fmt.Sprint(totalSize))))))
+		} else {
+			artist = goTree.New(fmt.Sprintf("✅%d:%s * %s", boot, path.Base(pathname), byte2Readable(toFloat64(fmt.Sprint(fmt.Sprint(totalSize))))))
+		}
+	} else {
+		if fileSelect[boot] {
+			artist = goTree.New(fmt.Sprintf("✅%d:%s * %s", boot, path.Base(pathname), byte2Readable(toFloat64(fmt.Sprint(fmt.Sprint(totalSize))))))
+			trueFileSelect[boot] = true
+		} else {
+			artist = goTree.New(fmt.Sprintf("⬜%d:%s * %s", boot, path.Base(pathname), byte2Readable(toFloat64(fmt.Sprint(fmt.Sprint(totalSize))))))
+			trueFileSelect[boot] = false
+		}
+	}
+
+	for _, val := range treeFolder {
+		artist.AddTree(val)
+	}
+	for _, val := range treeFiles {
+		index++
+		if trueFileSelect[index] {
+			artist.Add(fmt.Sprintf("✅%d:%s", index, val))
+		} else {
+			artist.Add(fmt.Sprintf("⬜%d:%s", index, val))
+		}
+	}
+	allFalse := true
+	for _, v := range trueFileSelect {
+		if v {
+			allFalse = false
+			break
+		}
+	}
+	if boot == 1 && allFalse {
+		log.Println("ss")
+		return generateFolderTree(pathname, 1, fileSelect, "0", int8(0))
+	} else {
+		return artist, res, trueFileSelect
+	}
+
+}
+func printFolderTree(pathName string, fileSelect map[int]bool, selectFileIndex string) (string, map[int]bool) {
+	tree, _, trueFileSelect := generateFolderTree(pathName, 1, fileSelect, selectFileIndex, int8(0))
+	return tree.Print(), trueFileSelect
+}
+
 func toInt(text string) int {
 	i, err := strconv.Atoi(text)
 	dropErr(err)
 	return i
+}
+
+func toFloat64(text string) float64 {
+	res, err := strconv.ParseFloat(text, 64)
+	dropErr(err)
+	return res
 }
