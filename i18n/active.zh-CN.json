@@ -61,5 +61,10 @@
   "uploadDownloadFolderFiles": "上传下载文件夹内的文件",
   "moveDownloadFolderFiles": "移动下载文件夹内的文件",
   "confirmDelete": "确定删除",
-  "cancel": "取消"
+  "cancel": "取消",
+  "filesDeletedSuccessfully": "文件成功删除",
+  "noFilesFound": "文件夹内没有文件",
+  "fileDirectoryIsAsFollows": "的文件目录如下：",
+  "pleaseSelectTheFileYouWantToDelete": "请选择您要删除的文件",
+  "pleaseSelectTheFileYouWantToDownload": "请选择您要下载的文件"
 }

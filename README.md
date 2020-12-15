@@ -26,7 +26,7 @@ At the same time, communication via the bot protocol facilitates use on machines
 #### Function
 - [x] Control server files
   - [x] Delete file
-  - [ ] Move/Copy file
+  - [x] Move/Copy file
 - [x] Download files
   - [x] Download HTTP/FTP link
   - [x] Download Magnet link
@@ -52,6 +52,9 @@ At the same time, communication via the bot protocol facilitates use on machines
     - [ ] Nyaa
     - [ ] ThePirateBay
   - [ ] Other functions
+    - [x] File tree output system
+        - [x] File tree output for simple folders
+        - [x] Use images instead of text output for complex folder structures
     - [ ] Get all CIDs used in DMM via actor ID
     - [ ] Query the movie parameters in "ikoa" (using mahuateng).
     - [ ] Get the numbers of all actors via the javlibary actors' website. 

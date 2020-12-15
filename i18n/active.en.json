@@ -52,5 +52,19 @@
     "onDownloadStopDes": "Download stopped!",
     "onDownloadCompleteDes": "%s Download completed!",
     "onDownloadErrorDes": "%s Download error!",
-    "onBtDownloadCompleteDes": "BT %s Download completed!"
+    "onBtDownloadCompleteDes": "BT %s Download completed!",
+    "selected": "Selected",
+    "operationSuccess": "Operation was successful",
+    "selectAll": "🌝 Select all",
+    "invert": "🌚 Select Invert",
+    "startDownload": "🚀 Start",
+    "uploadDownloadFolderFiles": "Upload files in the download folder",
+    "moveDownloadFolderFiles": "Move the files in the download folder",
+    "confirmDelete": "Sure to delete",
+    "cancel": "cancel",
+    "filesDeletedSuccessfully": "File was deleted successfully",
+    "noFilesFound": "There are no files in the folder",
+    "fileDirectoryIsAsFollows": "file directory is as follows:",
+    "pleaseSelectTheFileYouWantToDelete": "Please select the file you want to delete",
+    "pleaseSelectTheFileYouWantToDownload": "Please select the file you want to download"
 }

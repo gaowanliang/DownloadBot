@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 	"path"
-	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -103,25 +102,49 @@ func isLocal(uri string) bool {
 	return strings.Contains(uri, "127.0.0.1") || strings.Contains(uri, "localhost")
 }
 
-func removeContents(dir string) error {
-	d, err := os.Open(dir)
-	if err != nil {
-		return err
+func removeContents(boot int, pathname string, fileSelect map[int]bool) int {
+	index := boot
+	if pathname[:len(pathname)-1] != "/" {
+		pathname += "/"
 	}
-	defer d.Close()
-	names, err := d.Readdirnames(-1)
-	if err != nil {
-		return err
-	}
-	for _, name := range names {
-		err = os.RemoveAll(filepath.Join(dir, name))
-		if err != nil {
-			return err
+	rd, err := ioutil.ReadDir(pathname)
+	dropErr(err)
+	res := make([]string, 0)
+	res = append(res, pathname)
+	fileCount := 0
+	for _, fi := range rd {
+		if fi.IsDir() {
+			index++
+			fileCount++
+			res = append(res, pathname+fi.Name())
+			index += removeContents(index, pathname+fi.Name(), fileSelect)
+		} else {
+			fileCount++
+			res = append(res, pathname+fi.Name())
 		}
 	}
-	return nil
+
+	for _, removePath := range res {
+		index++
+		log.Println(index, removePath)
+		if fileSelect[index] || index != 1 {
+			err = os.RemoveAll(removePath)
+			dropErr(err)
+		}
+	}
+	return fileCount
 }
 
+func RemoveFiles(deleteFiles []string) {
+	//removeContents(1, info.DownloadFolder, fileSelect)
+	for _, removePath := range deleteFiles {
+		log.Println(removePath)
+		if removePath != info.DownloadFolder || removePath != info.DownloadFolder+"/" {
+			err := os.RemoveAll(removePath)
+			dropErr(err)
+		}
+	}
+}
 func GetAllFile(pathname string) ([][]string, int64) {
 	if pathname[:len(pathname)-1] != "/" {
 		pathname += "/"
@@ -147,7 +170,7 @@ func GetAllFile(pathname string) ([][]string, int64) {
 	return res, totalSize
 }
 
-func generateFolderTree(pathname string, boot int, fileSelect map[int]bool, selectFileIndex string, parentSelected int8) (goTree.Tree, [][]string, map[int]bool) {
+func generateFolderTree(pathname string, boot int, fileSelect map[int]bool, selectFileIndex string, parentSelected int8) (goTree.Tree, [][]string, map[int]bool, []string) {
 	index := boot
 	if pathname[:len(pathname)-1] != "/" {
 		pathname += "/"
@@ -160,6 +183,8 @@ func generateFolderTree(pathname string, boot int, fileSelect map[int]bool, sele
 	treeFiles := make([]string, 0)
 	trueFileSelect := make(map[int]bool, 0)
 	subList := make(map[int]bool)
+	subFilesPath := make([]string, 0)
+	deleteFiles := make([]string, 0)
 	var artist goTree.Tree
 	bootSelect := int8(0)
 	if selectFileIndex == fmt.Sprint(boot) || parentSelected != 0 {
@@ -177,12 +202,14 @@ func generateFolderTree(pathname string, boot int, fileSelect map[int]bool, sele
 		//log.Println(fi.Name())
 		if fi.IsDir() {
 			index++
-			ret, filesInfo, subTrueFileSelect := generateFolderTree(pathname+fi.Name(), index, fileSelect, selectFileIndex, bootSelect)
+			ret, filesInfo, subTrueFileSelect, subDeleteFiles := generateFolderTree(pathname+fi.Name(), index, fileSelect, selectFileIndex, bootSelect)
 			subFolderSize := 0
 			for _, iSize := range filesInfo {
 				subFolderSize += toInt(iSize[1])
 			}
-
+			for _, iPath := range subDeleteFiles {
+				deleteFiles = append(deleteFiles, iPath)
+			}
 			var folderNameAndSize = []string{pathname + fi.Name(), fmt.Sprint(subFolderSize)}
 			res = append(res, folderNameAndSize)
 			res = append(res, filesInfo...)
@@ -197,7 +224,8 @@ func generateFolderTree(pathname string, boot int, fileSelect map[int]bool, sele
 			index += len(filesInfo)
 		} else {
 			treeFiles = append(treeFiles, fmt.Sprintf("%s * %s", fi.Name(), byte2Readable(toFloat64(fmt.Sprint(fi.Size())))))
-			var fileNameAndSize = []string{pathname + fmt.Sprintln(fi.Name()), fmt.Sprint(fi.Size())}
+			subFilesPath = append(subFilesPath, pathname+fmt.Sprint(fi.Name()))
+			var fileNameAndSize = []string{pathname + fmt.Sprint(fi.Name()), fmt.Sprint(fi.Size())}
 			res = append(res, fileNameAndSize)
 			totalSize += int(fi.Size())
 		}
@@ -272,13 +300,17 @@ func generateFolderTree(pathname string, boot int, fileSelect map[int]bool, sele
 	for _, val := range treeFolder {
 		artist.AddTree(val)
 	}
-	for _, val := range treeFiles {
+	for i, val := range treeFiles {
 		index++
 		if trueFileSelect[index] {
 			artist.Add(fmt.Sprintf("✅%d:%s", index, val))
+			deleteFiles = append(deleteFiles, subFilesPath[i])
 		} else {
 			artist.Add(fmt.Sprintf("⬜%d:%s", index, val))
 		}
+	}
+	if trueFileSelect[boot] {
+		deleteFiles = append(deleteFiles, pathname)
 	}
 	allFalse := true
 	for _, v := range trueFileSelect {
@@ -288,16 +320,16 @@ func generateFolderTree(pathname string, boot int, fileSelect map[int]bool, sele
 		}
 	}
 	if boot == 1 && allFalse {
-		log.Println("ss")
+		//log.Println("ss")
 		return generateFolderTree(pathname, 1, fileSelect, "0", int8(0))
 	} else {
-		return artist, res, trueFileSelect
+		return artist, res, trueFileSelect, deleteFiles
 	}
 
 }
-func printFolderTree(pathName string, fileSelect map[int]bool, selectFileIndex string) (string, map[int]bool) {
-	tree, _, trueFileSelect := generateFolderTree(pathName, 1, fileSelect, selectFileIndex, int8(0))
-	return tree.Print(), trueFileSelect
+func printFolderTree(pathName string, fileSelect map[int]bool, selectFileIndex string) (string, map[int]bool, []string) {
+	tree, _, trueFileSelect, deleteFiles := generateFolderTree(pathName, 1, fileSelect, selectFileIndex, int8(0))
+	return tree.Print(), trueFileSelect, deleteFiles
 }
 
 func toInt(text string) int {
@@ -310,4 +342,9 @@ func toFloat64(text string) float64 {
 	res, err := strconv.ParseFloat(text, 64)
 	dropErr(err)
 	return res
+}
+func toInt64(text string) int64 {
+	i, err := strconv.ParseInt(text, 10, 64)
+	dropErr(err)
+	return i
 }

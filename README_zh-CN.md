@@ -53,8 +53,11 @@
         - [ ] Nyaa
         - [ ] ThePirateBay
     - [ ] 其他功能
+        - [x] 文件树输出系统
+            - [x] 对于简单文件夹的文件树输出
+            - [x] 对于复杂文件夹结构使用图片代替文字输出
         - [ ] 通过演员ID获取在DMM中使用的所有CID
-        - [ ] 查询 "ikoa "中的影片参数(利用mahuateng)
+        - [ ] 查询 "ikoa"中的影片参数(利用mahuateng)
         - [ ] 通过javlibary演员网址获得所有演员的编号。
         - [ ] 查询dmm cid信息、预览影片、预览图片。
         - [ ] 在sukebei中按关键词搜索。
@@ -70,7 +73,7 @@
 
 ## 开始
 
-1. 通过[@BotFather](https://telegram.me/botfather)创建您自己的bot并使用。
+1. 通过 [@BotFather](https://telegram.me/botfather) 创建您自己的bot并使用。
 2. （可选）您所在地区/国家的Telegram被封锁？一定要有一个 **HTTP** proxy启动并运行，您可以设置您的系统环境变量`HTTPS_PROXY`为代理地址来进行代理。
 3. 下载本程序
 4. 在想要执行本程序的根目录配置`config.json`

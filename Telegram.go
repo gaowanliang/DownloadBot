@@ -30,9 +30,6 @@ func setCommands(bot *tgbotapi.BotAPI) {
 		}, {
 			Command:     "myid",
 			Description: locText("tgCommandMyidDes"),
-		}, {
-			Command:     "set_mode",
-			Description: locText("tgCommandsetTorrentOrMagnetDownloadModeDes"),
 		},
 	})
 }
@@ -56,8 +53,8 @@ func SuddenMessage(bot *tgbotapi.BotAPI) {
 
 // TMSelectMessage receive active requests from WebSocket
 func TMSelectMessage(bot *tgbotapi.BotAPI) {
-	var MessageID int = 0
-	var lastGid string = ""
+	var MessageID = 0
+	var lastGid = ""
 	var lastFilesInfo [][]string
 	for {
 		a := <-TMSelectMessageChan
@@ -124,7 +121,7 @@ func TMSelectMessage(bot *tgbotapi.BotAPI) {
 			fileList = formatTMFiles(gid)
 		}
 
-		text := fmt.Sprintf("%s 的文件目录如下：\n", tellName(aria2Rpc.TellStatus(gid)))
+		text := fmt.Sprintf("%s %s\n", tellName(aria2Rpc.TellStatus(gid)), locText("fileDirectoryIsAsFollows"))
 		Keyboards := make([][]tgbotapi.InlineKeyboardButton, 0)
 		inlineKeyBoardRow := make([]tgbotapi.InlineKeyboardButton, 0)
 		index := 1
@@ -142,7 +139,7 @@ func TMSelectMessage(bot *tgbotapi.BotAPI) {
 			}
 			index++
 		}
-		text += "请选择您要下载的文件"
+		text += locText("pleaseSelectTheFileYouWantToDownload")
 		if len(inlineKeyBoardRow) != 0 {
 			Keyboards = append(Keyboards, inlineKeyBoardRow)
 		}
@@ -183,6 +180,12 @@ func removeFiles(bot *tgbotapi.BotAPI) {
 	var MessageID = 0
 	var filesSelect = make(map[int]bool)
 	fileList, _ := GetAllFile(info.DownloadFolder)
+	myID := toInt64(info.UserID)
+	if len(fileList) == 1 {
+		bot.Send(tgbotapi.NewMessage(myID, locText("noFilesFound")))
+		return
+	}
+	deleteFiles := make([]string, 0)
 	for {
 		a := <-FileControlChan
 		if a == "close" {
@@ -190,18 +193,27 @@ func removeFiles(bot *tgbotapi.BotAPI) {
 		}
 		b := strings.Split(a, "~")
 		fileTree := ""
-
 		if len(b) == 1 {
 			filesSelect = make(map[int]bool)
 			for i := 1; i <= len(fileList); i++ {
 				filesSelect[i] = true
 			}
-			fileTree, filesSelect = printFolderTree(info.DownloadFolder, filesSelect, "0")
+			fileTree, filesSelect, deleteFiles = printFolderTree(info.DownloadFolder, filesSelect, "0")
 		} else {
-			fileTree, filesSelect = printFolderTree(info.DownloadFolder, filesSelect, b[1])
+			if b[1] == "cancel" {
+				tgbotapi.NewDeleteMessage(myID, MessageID)
+				bot.Send(tgbotapi.NewDeleteMessage(myID, MessageID))
+				return
+			} else if b[1] == "Delete" {
+				RemoveFiles(deleteFiles)
+				bot.Send(tgbotapi.NewDeleteMessage(myID, MessageID))
+				bot.Send(tgbotapi.NewMessage(myID, locText("filesDeletedSuccessfully")))
+				return
+			}
+			fileTree, filesSelect, deleteFiles = printFolderTree(info.DownloadFolder, filesSelect, b[1])
 		}
 
-		text := fmt.Sprintf("%s 的文件目录如下：\n", info.DownloadFolder) + fileTree
+		text := fmt.Sprintf("%s %s\n", info.DownloadFolder, locText("fileDirectoryIsAsFollows")) + fileTree
 		Keyboards := make([][]tgbotapi.InlineKeyboardButton, 0)
 		inlineKeyBoardRow := make([]tgbotapi.InlineKeyboardButton, 0)
 		index := 1
@@ -213,7 +225,7 @@ func removeFiles(bot *tgbotapi.BotAPI) {
 			}
 			index++
 		}
-		text += "请选择您要删除的文件"
+		text += locText("pleaseSelectTheFileYouWantToDelete")
 		if len(inlineKeyBoardRow) != 0 {
 			Keyboards = append(Keyboards, inlineKeyBoardRow)
 		}
@@ -225,8 +237,7 @@ func removeFiles(bot *tgbotapi.BotAPI) {
 		inlineKeyBoardRow = append(inlineKeyBoardRow, tgbotapi.NewInlineKeyboardButtonData(locText("confirmDelete"), "file~Delete"+":9"))
 		inlineKeyBoardRow = append(inlineKeyBoardRow, tgbotapi.NewInlineKeyboardButtonData(locText("cancel"), "file~cancel"+":9"))
 		Keyboards = append(Keyboards, inlineKeyBoardRow)
-		myID, err := strconv.ParseInt(info.UserID, 10, 64)
-		dropErr(err)
+
 		msg := tgbotapi.NewMessage(myID, text)
 		if MessageID == 0 {
 			msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(Keyboards...)
@@ -447,6 +458,14 @@ func tgBot(BotKey string, wg *sync.WaitGroup) {
 					}
 				case locText("removeDownloadFolderFiles"):
 					//dropErr(removeContents(info.DownloadFolder))
+					isFileChanClean := false
+					for !isFileChanClean {
+						select {
+						case _ = <-FileControlChan:
+						default:
+							isFileChanClean = true
+						}
+					}
 					FileControlChan <- "close"
 					go removeFiles(bot)
 					FileControlChan <- "file"
@@ -503,9 +522,6 @@ func tgBot(BotKey string, wg *sync.WaitGroup) {
 					msg.Text = locText("commandHelpRes")
 				case "myid":
 					msg.Text = fmt.Sprintf(locText("commandMyidRes"), update.Message.Chat.ID)
-				case "set_mode":
-					msg.Text = locText("selectATMMode")
-					msg.ReplyMarkup = tgbotapi.NewReplyKeyboard(createKeyBoardRow(locText("tmMode1"), locText("tmMode2"), locText("tmMode3"))...)
 				}
 			} else {
 				msg.Text = locText("doNotHavePermissionControl")

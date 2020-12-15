@@ -146,7 +146,7 @@ func (p *printer) printItems(t []Tree, spaces []bool) string {
 	var result string
 	for i, f := range t {
 		last := i == len(t)-1
-		result += p.printText(f.Text(), spaces, last)
+		result += p.printText(strings.ReplaceAll(f.Text(), "\n", ""), spaces, last)
 		if len(f.Items()) > 0 {
 			spacesChild := append(spaces, last)
 			result += p.printItems(f.Items(), spacesChild)
