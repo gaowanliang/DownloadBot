@@ -12,16 +12,18 @@
 #### 下載方式
 
 - [x] Aria2 控制
-- [ ] [SimpleTorrent](https://github.com/boypt/simple-torrent) 控制
-- [ ] qbittorrent 控制
 - [ ] 多下載伺服器同時控制
+  - [ ] 多伺服器之間通過有公網的伺服器進行WebSocket通信
+  - [ ] 允許用戶建立公共WebSocket中繼端，供不方便建立WebSocket通信的用戶進行通信
+  - [ ] 在heroku單獨部署WebSocket中繼端進行中繼
+- [ ] [SimpleBitTorrent](https://github.com/boypt/simple-BitTorrent) 控制
+- [ ] qbitBitTorrent 控制
 
 #### 機器人協定支援
 
 - [x] Telegram Bot
 - [ ] 騰訊QQ（使用普通QQ用戶來進行交互）
 - [ ] 釘釘機器人
-
 
 #### 功能
 
@@ -31,13 +33,16 @@
 - [x] 下載檔案
     - [x] 下載 HTTP/FTP 連結
     - [x] 下載 Magnet 連結
-    - [x] 下載 BT 文件內的文件
-    - [x] 智慧 Torrent/Magnet 下載方式
+    - [x] 下載 BitTorrent 文件內的文件
+    - [x] 智慧 BitTorrent/Magnet 下載方式
         - [x] 只選擇下載最大的文件
         - [x] 根據檔大小智慧選擇檔，不選擇小文件
-    - [ ] 自我調整環境存儲空間的 Torrent/Magnet 下載
+    - [ ] 自我調整環境存儲空間的 BitTorrent/Magnet 下載
         - [ ] 不下載超過存儲空間的檔
-        - [ ] 根據存儲空間分塊多次下載 Torrent/Magnet 內的檔
+        - [ ] 根據存儲空間分塊多次下載 BitTorrent/Magnet 內的檔
+    - [ ] 無感覺化的做種功能
+      - [ ] 每次下載BitTorrent/Magnet檔後，保留最後一次下載的檔進行做種，直到下一次下載開始。
+      - [ ] 可設置每次下載結束後強制做種一段時間
 - [x] 上傳文件
     - [x] 下載完成後，向 OneDrive 上傳檔
     - [ ] 下載完成後，向 Google Drive 上傳檔
@@ -55,7 +60,7 @@
     - [ ] 其他功能
         - [x] 檔樹輸出系統
             - [x] 對於簡單資料夾的文件樹輸出
-            - [x] 對於複雜資料夾結構使用圖片代替文字輸出
+            - [ ] 對於複雜資料夾結構使用圖片代替文字輸出
         - [ ] 通過演員ID獲取在DMM中使用的所有CID
         - [ ] 查詢 "ikoa"中的影片參數(利用mahuateng)
         - [ ] 通過javlibary演員網址獲得所有演員的編號。
@@ -119,4 +124,5 @@
 #### 關於user-id
 
 如果您不知道您的 `user-id` ，可以將此項留空，在運行這個機器人後輸入`/myid`，此機器人就會返回您的`user-id`.
+
 

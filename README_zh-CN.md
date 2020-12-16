@@ -12,9 +12,13 @@
 #### 下载方式
 
 - [x] Aria2 控制
-- [ ] [SimpleTorrent](https://github.com/boypt/simple-torrent) 控制
-- [ ] qbittorrent 控制
 - [ ] 多下载服务器同时控制
+  - [ ] 多服务器之间通过有公网的服务器进行WebSocket通信
+  - [ ] 允许用户建立公共WebSocket中继端，供不方便建立WebSocket通信的用户进行通信
+  - [ ] 在heroku单独部署WebSocket中继端进行中继
+- [ ] [SimpleBitTorrent](https://github.com/boypt/simple-BitTorrent) 控制
+- [ ] qbitBitTorrent 控制
+
 
 #### 机器人协议支持
 
@@ -31,13 +35,16 @@
 - [x] 下载文件
     - [x] 下载 HTTP/FTP 链接
     - [x] 下载 Magnet 链接
-    - [x] 下载 BT 文件内的文件
-    - [x] 智能 Torrent/Magnet 下载方式
+    - [x] 下载 BitTorrent 文件内的文件
+    - [x] 智能 BitTorrent/Magnet 下载方式
         - [x] 只选择下载最大的文件
         - [x] 根据文件大小智能选择文件，不选择小文件
-    - [ ] 自适应环境存储空间的 Torrent/Magnet 下载
+    - [ ] 自适应环境存储空间的 BitTorrent/Magnet 下载
         - [ ] 不下载超过存储空间的文件
-        - [ ] 根据存储空间分块多次下载 Torrent/Magnet 内的文件
+        - [ ] 根据存储空间分块多次下载 BitTorrent/Magnet 内的文件
+    - [ ] 无感觉化的做种功能
+      - [ ] 每次下载BitTorrent/Magnet文件后，保留最后一次下载的文件进行做种，直到下一次下载开始。
+      - [ ] 可设置每次下载结束后强制做种一段时间
 - [x] 上传文件
     - [x] 下载完成后，向 OneDrive 上传文件
     - [ ] 下载完成后，向 Google Drive 上传文件
@@ -55,7 +62,7 @@
     - [ ] 其他功能
         - [x] 文件树输出系统
             - [x] 对于简单文件夹的文件树输出
-            - [x] 对于复杂文件夹结构使用图片代替文字输出
+            - [ ] 对于复杂文件夹结构使用图片代替文字输出
         - [ ] 通过演员ID获取在DMM中使用的所有CID
         - [ ] 查询 "ikoa"中的影片参数(利用mahuateng)
         - [ ] 通过javlibary演员网址获得所有演员的编号。

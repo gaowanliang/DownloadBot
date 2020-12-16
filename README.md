@@ -2,10 +2,10 @@
 
 # DownloadBot
 
-(Currently) 🤖  A Telegram Bot that controls your Aria2 server. 
+(Currently) 🤖 A Telegram Bot that can control your Aria2 server, control server files and also upload to OneDrive.
 
 ## Project significance
-This project is mainly to use small hard disk server for offline downloading, for large bt files to be downloaded in sections according to the size of the hard disk, each time downloading a part, then uploading the network disk, delete and then download the other parts, until all the files are downloaded.
+This project is mainly to use small hard disk server for offline downloading, for large BitTorrent files to be downloaded in sections according to the size of the hard disk, each time downloading a part, then uploading the network disk, delete and then download the other parts, until all the files are downloaded.
 
 At the same time, communication via the bot protocol facilitates use on machines that cannot intranet penetration, and simplifies the usual use of download programs for added convenience.
 
@@ -13,9 +13,13 @@ At the same time, communication via the bot protocol facilitates use on machines
 
 #### Download method
 - [x] Aria2 control
-- [ ] [SimpleTorrent](https://github.com/boypt/simple-torrent) control
-- [ ] qbittorrent control
 - [ ] Multi download server control at the same time
+  - [ ] WebSocket communication between multiple servers via a server with a public IP
+  - [ ] Allow users to create public WebSocket relays for users who are not comfortable establishing WebSocket communication
+  - [ ] Deploy a separate WebSocket relay in heroku for relaying
+- [ ] [SimpleBitTorrent](https://github.com/boypt/simple-BitTorrent) control
+- [ ] qbitBitTorrent control
+
 
 #### The Bot protocol supports
 - [x] Telegram Bot
@@ -30,13 +34,16 @@ At the same time, communication via the bot protocol facilitates use on machines
 - [x] Download files
   - [x] Download HTTP/FTP link
   - [x] Download Magnet link
-  - [x] Download the files in the BT file
-  - [x] Custom Torrent/Magnet download
+  - [x] Download the files in the BitTorrent file
+  - [x] Custom BitTorrent/Magnet download
     - [x] Select only the largest file to download
-    - [x] Intelligent file selection based on file size, do not select small files in Torrent/Magnet.
-  - [ ] Download Torrent/Magnet according to the size of storage space
+    - [x] Intelligent file selection based on file size, do not select small files in BitTorrent/Magnet.
+  - [ ] Download BitTorrent/Magnet according to the size of storage space
     - [ ] Do not download files that exceed storage space
-    - [ ] Download the files in Torrent/Magnet several times according to the storage space
+    - [ ] Download the files in BitTorrent/Magnet several times according to the storage space
+  - [ ] Senseless seeding functions
+      - [ ] After each BitTorrent/Magnet file download, keep the last downloaded file for seeding until the next download starts.
+      - [ ] Can be set to force seeding for a period of time at the end of each download
 - [x] Upload a file
   - [x] Upload the file to OneDrive when the download is complete
   - [ ] Upload the file to Google Drive when the download is complete
@@ -48,13 +55,13 @@ At the same time, communication via the bot protocol facilitates use on machines
     - [x] English
     - [x] Traditional Chinese
     - [ ] Japanese
-  - [ ] No human intervention, fully automatic downloads of BT site
+  - [ ] No human intervention, fully automatic downloads of BitTorrent site
     - [ ] Nyaa
     - [ ] ThePirateBay
   - [ ] Other functions
     - [x] File tree output system
         - [x] File tree output for simple folders
-        - [x] Use images instead of text output for complex folder structures
+        - [ ] Use images instead of text output for complex folder structures
     - [ ] Get all CIDs used in DMM via actor ID
     - [ ] Query the movie parameters in "ikoa" (using mahuateng).
     - [ ] Get the numbers of all actors via the javlibary actors' website. 
