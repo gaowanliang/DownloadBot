@@ -95,7 +95,8 @@ At the same time, communication via the bot protocol facilitates use on machines
     "max-index": 10,
     "sign":"Main Aria2",
     "language":"zh-CN",
-    "downloadFolder":"C:/aria2/Aria2Data"
+    "downloadFolder":"C:/aria2/Aria2Data",
+    "moveFolder":"C:/aria2/GoogleDrive"
 }
 ```
 #### Corresponding explanations
@@ -106,7 +107,8 @@ At the same time, communication via the bot protocol facilitates use on machines
 * max-index：Maximum display quantity of download information, 10 pieces are recommended (to be improved in the future)
 * sign: Identification of this Bot, If multiple servers are required to connect to the same Bot, the specific server can be determined through this item.
 * language: Language of Bot output
-* downloadFolder: Aria2 download file save address
+* downloadFolder: Aria2 download file save address.If you do not use this parameter, enter `""`
+* moveFolder： The folder to which you want to move the files for the `downloadFolder`. If you do not use this parameter, enter `""`
 
 #### Currently supported languages and language tags
 | Languages           | Tag   |

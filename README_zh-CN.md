@@ -47,6 +47,7 @@
       - [ ] 可设置每次下载结束后强制做种一段时间
 - [x] 上传文件
     - [x] 下载完成后，向 OneDrive 上传文件
+      - [ ] 断点续传
     - [ ] 下载完成后，向 Google Drive 上传文件
     - [ ] 下载完成后，向 Mega 上传文件
     - [ ] 下载完成后，向 天翼网盘 上传文件
@@ -97,7 +98,8 @@
   "max-index": 10,
   "sign": "Main Aria2",
   "language": "zh-CN",
-  "downloadFolder": "C:/aria2/Aria2Data"
+  "downloadFolder": "C:/aria2/Aria2Data",
+  "moveFolder":"C:/aria2/GoogleDrive"
 }
 ```
 
@@ -111,7 +113,8 @@
 * max-index：下载信息最大显示数量，建议10条（以后会改进）
 * sign：此机器人的标识，如果需要多个服务器连接同一个机器人，通过这一项可以确定具体是哪一台服务器
 * language：机器人输出的语言
-* downloadFolder：Aria2下载文件保存的地址
+* downloadFolder：Aria2下载文件保存的地址。如果不使用，请输入`""`
+* moveFolder： 要将下载文件夹的文件移动到的文件夹。如果不使用，请输入`""`
 
 #### 目前支持的语言及语言标签
 

@@ -3,6 +3,9 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/shirou/gopsutil/cpu"
+	"github.com/shirou/gopsutil/disk"
+	"github.com/shirou/gopsutil/mem"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -11,6 +14,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 	goTree "v2/gotree"
 
 	"github.com/nicksnyder/go-i18n/v2/i18n"
@@ -330,6 +334,51 @@ func generateFolderTree(pathname string, boot int, fileSelect map[int]bool, sele
 func printFolderTree(pathName string, fileSelect map[int]bool, selectFileIndex string) (string, map[int]bool, []string) {
 	tree, _, trueFileSelect, deleteFiles := generateFolderTree(pathName, 1, fileSelect, selectFileIndex, int8(0))
 	return tree.Print(), trueFileSelect, deleteFiles
+}
+
+func printProgressBar(progress float64) string {
+	progressBar := "["
+	for i := 0; i < int(progress/7.7); i++ {
+		progressBar += "●"
+	}
+	for i := 0; i < 13-int(progress/7.7); i++ {
+		progressBar += "○"
+	}
+	progressBar += "] " + strconv.FormatFloat(progress, 'f', 2, 64) + " %"
+	return progressBar
+}
+
+func GetCpuPercent() float64 {
+	percent, _ := cpu.Percent(time.Second, false)
+	return percent[0]
+}
+
+func GetMemPercent() float64 {
+	memInfo, _ := mem.VirtualMemory()
+	return memInfo.UsedPercent
+}
+
+func GetDiskPercent() float64 {
+	parts, _ := disk.Partitions(true)
+	diskInfo, _ := disk.Usage(parts[0].Mountpoint)
+	return diskInfo.UsedPercent
+}
+
+const (
+	// 定义每分钟的秒数
+	SecondsPerMinute = 60
+	// 定义每小时的秒数
+	SecondsPerHour = SecondsPerMinute * 60
+	// 定义每天的秒数
+	SecondsPerDay = SecondsPerHour * 24
+)
+
+func resolveTime(seconds int) (day int, hour int, minute int, second int) {
+	day = seconds / SecondsPerDay
+	hour = (seconds - day*SecondsPerDay) / SecondsPerHour
+	minute = (seconds - day*SecondsPerDay - hour*SecondsPerHour) / SecondsPerMinute
+	second = seconds - day*SecondsPerDay - hour*SecondsPerHour - minute*SecondsPerMinute
+	return
 }
 
 func toInt(text string) int {

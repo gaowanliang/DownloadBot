@@ -387,6 +387,7 @@ func tgBot(BotKey string, wg *sync.WaitGroup) {
 				switch update.Message.Text {
 				case locText("nowDownload"):
 					res := formatTellSomething(aria2Rpc.TellActive())
+					//log.Println(res)
 					if res != "" {
 						msg.Text = res
 					} else {
@@ -475,18 +476,6 @@ func tgBot(BotKey string, wg *sync.WaitGroup) {
 					//dropErr(removeContents(info.DownloadFolder))
 					//go removeFiles(bot)
 					//FileControlChan <- "file"
-				case locText("tmMode1"):
-					aria2Set.TMMode = "1"
-					msg.Text = locText("setTMMode", "tmMode1")
-					msg.ReplyMarkup = numericKeyboard
-				case locText("tmMode2"):
-					aria2Set.TMMode = "2"
-					msg.Text = locText("setTMMode", "tmMode2")
-					msg.ReplyMarkup = numericKeyboard
-				case locText("tmMode3"):
-					aria2Set.TMMode = "3"
-					msg.Text = locText("setTMMode", "tmMode3")
-					msg.ReplyMarkup = numericKeyboard
 				default:
 					if !download(update.Message.Text) {
 						msg.Text = locText("unknownLink")
@@ -516,7 +505,7 @@ func tgBot(BotKey string, wg *sync.WaitGroup) {
 					if isLocal(info.Aria2Server) {
 						msg.Text += "\n" + locText("inLocal")
 					}
-					msg.Text += "\n" + locText("nowTMMode") + locText("tmMode"+aria2Set.TMMode)
+					//msg.Text += "\n" + locText("nowTMMode") + locText("tmMode"+aria2Set.TMMode)
 					msg.ReplyMarkup = numericKeyboard
 				case "help":
 					msg.Text = locText("commandHelpRes")

@@ -16,6 +16,7 @@ type Config struct {
 	Sign           string `json:"sign"`
 	Language       string `json:"language"`
 	DownloadFolder string `json:"downloadFolder"`
+	MoveFolder     string `json:"moveFolder"`
 }
 
 // Aria2DownloadMode is set aria2 download mode
