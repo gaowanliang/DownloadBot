@@ -30,9 +30,9 @@
   "paused": "暂停中",
   "complete": "已完成",
   "removed": "被移除",
-  "queryInformationFormat1": "GID:%s\n名称: %s\n进度: %s\n大小: %s",
-  "queryInformationFormat2": "GID:%s\n名称: %s\n状态: %s\n进度: %s\n大小: %s",
-  "queryInformationFormat3": "GID:%s\n名称: %s\n进度: %s\n大小: %s\n速度: %s/s",
+  "queryInformationFormat1": "*文件名:* `%s`\n`%s`\n*已下载:* %s *共* %s\n*线程数:* %s\n*GID:* `%s`",
+  "queryInformationFormat2": "*文件名:* `%s`\n*状态:* %s\n`%s`\n*已下载:* %s *共* %s\n*线程数:* %s\n*GID:* `%s`",
+  "queryInformationFormat3": "*文件名:* `%s`\n`%s`\n*已下载:* %s *共* %s\n*速度:* %s/s\n*剩余时间:* %s\n*线程数:* %s\n*GID:* `%s`",
   "ResumeAll": "恢复全部",
   "StopAll": "停止全部",
   "downloadFolderClear": "删除下载文件夹中所有文件",
@@ -66,5 +66,11 @@
   "noFilesFound": "文件夹内没有文件",
   "fileDirectoryIsAsFollows": "的文件目录如下：",
   "pleaseSelectTheFileYouWantToDelete": "请选择您要删除的文件",
-  "pleaseSelectTheFileYouWantToDownload": "请选择您要下载的文件"
+  "pleaseSelectTheFileYouWantToDownload": "请选择您要下载的文件",
+  "onlyDays": "%d 天 ",
+  "onlyHours": "%d 小时 ",
+  "onlyMinutes": "%d 分钟 ",
+  "onlySeconds": "%d 秒",
+  "UnableEstimate": "无法估计",
+  "systemInfo": "\n*CPU:* %.2f%% *硬盘:* %.2f%% *内存:* %.2f%%\n*总下载速度:* %s/s 📥\n*总上传速度:* %s/s 📤"
 }

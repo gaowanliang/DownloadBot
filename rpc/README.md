@@ -1,10 +1,5 @@
 # PACKAGE DOCUMENTATION
 
-**package rpc**
-    
-    import "github.com/matzoe/argo/rpc"
-
-
 
 ## FUNCTIONS
 

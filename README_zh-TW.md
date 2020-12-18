@@ -9,6 +9,8 @@
 同時，通過機器人協議通信，方便在無法進行內網穿透的機器上進行使用，而且簡化了平時使用下載程式的操作，提高了便利性。
 ## 實現
 
+<text style="color:red;">**注意：本項目仍處於測試階段，提交的Release僅供測試，現在下載後並不保證您的穩定使用，也不能保證下面所勾選的內容已經被實現。當真正可以正常使用的時候，我會提交 V1.0 版本（V1.0 版本不會實現下面全部功能，但是已經可以正常穩定的使用）**</text>
+
 #### 下載方式
 
 - [x] Aria2 控制
@@ -16,7 +18,7 @@
   - [ ] 多伺服器之間通過有公網的伺服器進行WebSocket通信
   - [ ] 允許用戶建立公共WebSocket中繼端，供不方便建立WebSocket通信的用戶進行通信
   - [ ] 在heroku單獨部署WebSocket中繼端進行中繼
-- [ ] [SimpleBitTorrent](https://github.com/boypt/simple-BitTorrent) 控制
+- [ ] [SimpleTorrent](https://github.com/boypt/simple-torrent) 控制
 - [ ] qbitBitTorrent 控制
 
 #### 機器人協定支援
@@ -30,6 +32,7 @@
 - [x] 控制伺服器檔
     - [x] 刪除檔
     - [x] 移動文件
+    - [ ] 壓縮檔
 - [x] 下載檔案
     - [x] 下載 HTTP/FTP 連結
     - [x] 下載 Magnet 連結
@@ -45,9 +48,12 @@
       - [ ] 可設置每次下載結束後強制做種一段時間
 - [x] 上傳文件
     - [x] 下載完成後，向 OneDrive 上傳檔
+      - [ ] 中斷點續傳
     - [ ] 下載完成後，向 Google Drive 上傳檔
     - [ ] 下載完成後，向 Mega 上傳檔
     - [ ] 下載完成後，向 天翼網盤 上傳文件
+    - [ ] (當使用Telegram進行通信時)下載完成後，向 Telegram 上傳檔
+      - [ ] 當檔超過2GB時，分塊壓縮後再進行上傳
 - [x] 附加其他功能
     - [x] 多語言支援
         - [x] 簡體中文
@@ -84,7 +90,17 @@
 4. 在想要執行本程式的根目錄配置`config.json`
 5. 運行可執行檔
 
-### 設定檔示例
+## 使用截圖
+
+<div align="center">
+<img src="./img/1.jpg" height="300px" alt=""><img src="./img/2.jpg" height="300px" alt="" >  
+</div>
+<br>
+<br>
+<div align="center">
+<img src="./img/3.jpg" height="300px" alt=""><img src="./img/4.jpg" height="300px" alt="" >  </div>
+
+## 設定檔示例
 
 ```json
 {
@@ -95,7 +111,8 @@
   "max-index": 10,
   "sign": "Main Aria2",
   "language": "zh-CN",
-  "downloadFolder": "C:/aria2/Aria2Data"
+  "downloadFolder": "C:/aria2/Aria2Data",
+  "moveFolder":"C:/aria2/GoogleDrive"
 }
 ```
 
@@ -109,7 +126,8 @@
 * max-index：下載資訊最大顯示數量，建議10條（以後會改進）
 * sign：此機器人的標識，如果需要多個伺服器連接同一個機器人，通過這一項可以確定具體是哪一台伺服器
 * language：機器人輸出的語言
-* downloadFolder：Aria2下載檔案保存的位址
+* downloadFolder：Aria2下載檔案保存的位址。如果不使用，請輸入`""`
+* moveFolder： 要將下載檔案夾的文件移動到的資料夾。如果不使用，請輸入`""`
 
 #### 目前支援的語言及語言標籤
 

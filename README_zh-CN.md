@@ -9,6 +9,8 @@
 同时，通过机器人协议通信，方便在无法进行内网穿透的机器上进行使用，而且简化了平时使用下载程序的操作，提高了便利性。
 ## 实现
 
+<text style="color:red;">**注意：本项目仍处于测试阶段，提交的Release仅供测试，现在下载后并不保证您的稳定使用，也不能保证下面所勾选的内容已经被实现。当真正可以正常使用的时候，我会提交 V1.0 版本（V1.0 版本不会实现下面全部功能，但是已经可以正常稳定的使用）**</text>
+
 #### 下载方式
 
 - [x] Aria2 控制
@@ -16,7 +18,7 @@
   - [ ] 多服务器之间通过有公网的服务器进行WebSocket通信
   - [ ] 允许用户建立公共WebSocket中继端，供不方便建立WebSocket通信的用户进行通信
   - [ ] 在heroku单独部署WebSocket中继端进行中继
-- [ ] [SimpleBitTorrent](https://github.com/boypt/simple-BitTorrent) 控制
+- [ ] [SimpleTorrent](https://github.com/boypt/simple-torrent) 控制
 - [ ] qbitBitTorrent 控制
 
 
@@ -32,6 +34,7 @@
 - [x] 控制服务器文件
     - [x] 删除文件
     - [x] 移动文件
+    - [ ] 压缩文件
 - [x] 下载文件
     - [x] 下载 HTTP/FTP 链接
     - [x] 下载 Magnet 链接
@@ -51,6 +54,8 @@
     - [ ] 下载完成后，向 Google Drive 上传文件
     - [ ] 下载完成后，向 Mega 上传文件
     - [ ] 下载完成后，向 天翼网盘 上传文件
+    - [ ] (当使用Telegram进行通信时)下载完成后，向 Telegram 上传文件
+      - [ ] 当文件超过2GB时，分块压缩后再进行上传
 - [x] 附加其他功能
     - [x] 多语言支持
         - [x] 简体中文
@@ -87,7 +92,18 @@
 4. 在想要执行本程序的根目录配置`config.json`
 5. 运行可执行文件
 
-### 配置文件示例
+## 使用截图
+
+<div align="center">
+<img src="./img/1.jpg" height="300px" alt=""><img src="./img/2.jpg" height="300px" alt="" >  
+</div>
+<br>
+<br>
+<div align="center">
+<img src="./img/3.jpg" height="300px" alt=""><img src="./img/4.jpg" height="300px" alt="" >  </div>
+
+
+## 配置文件示例
 
 ```json
 {

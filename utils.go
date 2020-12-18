@@ -143,7 +143,7 @@ func RemoveFiles(deleteFiles []string) {
 	//removeContents(1, info.DownloadFolder, fileSelect)
 	for _, removePath := range deleteFiles {
 		log.Println(removePath)
-		if removePath != info.DownloadFolder || removePath != info.DownloadFolder+"/" {
+		if removePath != info.DownloadFolder && removePath != info.DownloadFolder+"/" {
 			err := os.RemoveAll(removePath)
 			dropErr(err)
 		}

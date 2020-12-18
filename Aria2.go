@@ -50,7 +50,7 @@ func aria2Load() {
 
 func formatTellSomething(info []rpc.StatusInfo, err error) string {
 	dropErr(err)
-	//log.Printf("%+v\n\n", info)
+	log.Printf("%+v\n\n", info)
 	res := ""
 	var statusFlag = map[string]string{"active": locText("active"), "paused": locText("paused"), "complete": locText("complete"), "removed": locText("removed")}
 	for index, Files := range info {
@@ -62,21 +62,43 @@ func formatTellSomething(info []rpc.StatusInfo, err error) string {
 			bytes, err := strconv.ParseFloat(Files.TotalLength, 64)
 			dropErr(err)
 			m["Size"] = byte2Readable(bytes)
-			m["CompletedLength"] = Files.CompletedLength
 			completedLength, err := strconv.ParseFloat(Files.CompletedLength, 64)
 			dropErr(err)
-			m["Progress"] = strconv.FormatFloat(completedLength*100.0/bytes, 'f', 2, 64) + " %"
-			// m["Threads"] = fmt.Sprint(len(File.URIs))
+			m["CompletedLength"] = byte2Readable(completedLength)
+			m["Progress"] = printProgressBar(completedLength * 100.0 / bytes)
+			m["Threads"] = "-"
 			downloadSpeed, err := strconv.ParseFloat(Files.DownloadSpeed, 64)
 			dropErr(err)
 			m["Speed"] = byte2Readable(downloadSpeed)
 			m["Status"] = statusFlag[Files.Status]
+			day, hours, minutes, seconds := resolveTime(int((bytes - completedLength) / downloadSpeed))
+			m["remainingTime"] = ""
+			//log.Println(hours, minutes, seconds, int((bytes-completedLength)/downloadSpeed))
+			if day > 0 {
+				m["remainingTime"] += fmt.Sprintf(locText("onlyDays"), day)
+			}
+			if hours > 0 {
+				m["remainingTime"] += fmt.Sprintf(locText("onlyHours"), hours)
+			}
+			if minutes > 0 {
+				m["remainingTime"] += fmt.Sprintf(locText("onlyMinutes"), minutes)
+			}
+			if seconds > 0 {
+				m["remainingTime"] += fmt.Sprintf(locText("onlySeconds"), seconds)
+			}
+			if m["remainingTime"] == "" {
+				m["remainingTime"]=locText("UnableEstimate")
+			}
+
 			if Files.Status == "paused" {
-				res += fmt.Sprintf(locText("queryInformationFormat1"), m["GID"], m["Name"], m["Progress"], m["Size"])
+				//res += fmt.Sprintf(locText("queryInformationFormat1"), m["GID"], m["Name"], m["Progress"], m["Size"])
+				res += fmt.Sprintf(locText("queryInformationFormat1"), m["Name"], m["Progress"], m["CompletedLength"], m["Size"], m["Threads"], m["GID"])
 			} else if Files.Status == "complete" || Files.Status == "removed" {
-				res += fmt.Sprintf(locText("queryInformationFormat2"), m["GID"], m["Name"], m["Status"], m["Progress"], m["Size"])
+				//res += fmt.Sprintf(locText("queryInformationFormat2"), m["GID"], m["Name"], m["Status"], m["Progress"], m["Size"])
+				res += fmt.Sprintf(locText("queryInformationFormat2"), m["Name"], m["Status"], m["Progress"], m["CompletedLength"], m["Size"], m["Threads"], m["GID"])
 			} else {
-				res += fmt.Sprintf(locText("queryInformationFormat3"), m["GID"], m["Name"], m["Progress"], m["Size"], m["Speed"])
+				//res += fmt.Sprintf(locText("queryInformationFormat3"), m["GID"], m["Name"], m["Progress"], m["Size"], m["Speed"])
+				res += fmt.Sprintf(locText("queryInformationFormat3"), m["Name"], m["Progress"], m["CompletedLength"], m["Size"], m["Speed"], m["remainingTime"], m["Threads"], m["GID"])
 			}
 		} else {
 			for _, File := range Files.Files {
@@ -98,27 +120,31 @@ func formatTellSomething(info []rpc.StatusInfo, err error) string {
 				dropErr(err)
 				m["Speed"] = byte2Readable(downloadSpeed)
 				m["Status"] = statusFlag[Files.Status]
+				m["remainingTime"] = ""
 				day, hours, minutes, seconds := resolveTime(int((bytes - completedLength) / downloadSpeed))
-				log.Println(hours, minutes, seconds, int((bytes-completedLength)/downloadSpeed))
+				//log.Println(hours, minutes, seconds, int((bytes-completedLength)/downloadSpeed))
 				if day > 0 {
-					m["remainingTime"] = fmt.Sprintf("%d 天 %d 小时 %d 分钟 %d 秒", day, hours, minutes, seconds)
-				} else if hours > 0 {
-					m["remainingTime"] = fmt.Sprintf("%d 小时 %d 分钟 %d 秒", hours, minutes, seconds)
-				} else if minutes > 0 {
-					m["remainingTime"] = fmt.Sprintf("%d 分钟 %d 秒", minutes, seconds)
-				} else {
-					m["remainingTime"] = fmt.Sprintf("%d 秒", seconds)
+					m["remainingTime"] += fmt.Sprintf(locText("onlyDays"), day)
+				}
+				if hours > 0 {
+					m["remainingTime"] += fmt.Sprintf(locText("onlyHours"), hours)
+				}
+				if minutes > 0 {
+					m["remainingTime"] += fmt.Sprintf(locText("onlyMinutes"), minutes)
+				}
+				if seconds > 0 {
+					m["remainingTime"] += fmt.Sprintf(locText("onlySeconds"), seconds)
 				}
 
 				if Files.Status == "paused" {
-					res += fmt.Sprintf(locText("queryInformationFormat1"), m["GID"], m["Name"], m["Progress"], m["Size"])
-					res += fmt.Sprintf("*文件名:* `%s`\n`%s`\n剩余时间*已下载:* %s *共* %s\n*GID:* `%s`", m["Name"], m["Progress"], m["CompletedLength"], m["Size"], m["GID"])
+					//res += fmt.Sprintf(locText("queryInformationFormat1"), m["GID"], m["Name"], m["Progress"], m["Size"])
+					res += fmt.Sprintf(locText("queryInformationFormat1"), m["Name"], m["Progress"], m["CompletedLength"], m["Size"], m["Threads"], m["GID"])
 				} else if Files.Status == "complete" || Files.Status == "removed" {
 					//res += fmt.Sprintf(locText("queryInformationFormat2"), m["GID"], m["Name"], m["Status"], m["Progress"], m["Size"])
-					res += fmt.Sprintf("*文件名:* `%s`\n*状态:* %s\n`%s`\n*已下载:* %s *共* %s\n*GID:* `%s`", m["Name"], m["Status"], m["Progress"], m["CompletedLength"], m["Size"], m["GID"])
+					res += fmt.Sprintf(locText("queryInformationFormat2"), m["Name"], m["Status"], m["Progress"], m["CompletedLength"], m["Size"], m["Threads"], m["GID"])
 				} else {
 					//res += fmt.Sprintf(locText("queryInformationFormat3"), m["GID"], m["Name"], m["Progress"], m["Size"], m["Speed"])
-					res += fmt.Sprintf("*文件名:* `%s`\n`%s`\n*已下载:* %s *共* %s\n*速度:* %s/s\n*剩余时间:* %s\n*GID:* `%s`", m["Name"], m["Progress"], m["CompletedLength"], m["Size"], m["Speed"], m["remainingTime"], m["GID"])
+					res += fmt.Sprintf(locText("queryInformationFormat3"), m["Name"], m["Progress"], m["CompletedLength"], m["Size"], m["Speed"], m["remainingTime"], m["Threads"], m["GID"])
 				}
 			}
 		}
@@ -130,7 +156,7 @@ func formatTellSomething(info []rpc.StatusInfo, err error) string {
 	if res != "" {
 		totalSpeed, err := aria2Rpc.GetGlobalStat()
 		dropErr(err)
-		res += fmt.Sprintf("\n*CPU:* %.2f%% *硬盘:* %.2f%% *内存:* %.2f%%\n*总下载速度:* %s/s 📥\n*总上传速度:* %s/s 📤", GetCpuPercent(), GetDiskPercent(), GetMemPercent(), byte2Readable(toFloat64(totalSpeed.DownloadSpeed)), byte2Readable(toFloat64(totalSpeed.UploadSpeed)))
+		res += fmt.Sprintf(locText("systemInfo"), GetCpuPercent(), GetDiskPercent(), GetMemPercent(), byte2Readable(toFloat64(totalSpeed.DownloadSpeed)), byte2Readable(toFloat64(totalSpeed.UploadSpeed)))
 	}
 	return res
 }

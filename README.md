@@ -11,13 +11,15 @@ At the same time, communication via the bot protocol facilitates use on machines
 
 ## Functions realized
 
+<text style="color:red;">**Note: This project is still in beta testing and the Release submitted is for testing purposes only. Downloading it now does not guarantee you stable use, nor does it guarantee that the content ticked below has been implemented. The software is only stable when the submitted version is v1.0 (v1.0 will not implement all of the features below, but it will work properly and stably).**</text>
+
 #### Download method
 - [x] Aria2 control
 - [ ] Multi download server control at the same time
   - [ ] WebSocket communication between multiple servers via a server with a public IP
   - [ ] Allow users to create public WebSocket relays for users who are not comfortable establishing WebSocket communication
   - [ ] Deploy a separate WebSocket relay in heroku for relaying
-- [ ] [SimpleBitTorrent](https://github.com/boypt/simple-BitTorrent) control
+- [ ] [SimpleTorrent](https://github.com/boypt/simple-torrent) control
 - [ ] qbitBitTorrent control
 
 
@@ -29,8 +31,9 @@ At the same time, communication via the bot protocol facilitates use on machines
 
 #### Function
 - [x] Control server files
-  - [x] Delete file
-  - [x] Move/Copy file
+  - [x] Delete files
+  - [x] Move/Copy files
+  - [ ] Compressed files
 - [x] Download files
   - [x] Download HTTP/FTP link
   - [x] Download Magnet link
@@ -49,6 +52,8 @@ At the same time, communication via the bot protocol facilitates use on machines
   - [ ] Upload the file to Google Drive when the download is complete
   - [ ] Upload the file to Mega when the download is complete
   - [ ] Upload the file to 189Cloud when the download is complete
+  - [ ] (When communicating via Telegram) Upload the file to Telegram when the download is complete
+    - [ ] When the file exceeds 2GB, it is compressed in chunks before uploading
 - [x] Additional features
   - [x] Multilingual support
     - [x] Simplified Chinese
@@ -83,6 +88,17 @@ At the same time, communication via the bot protocol facilitates use on machines
 3. Download this program
 4. Configure `config.json` at the root of the program that you want to execute.
 5. Run the executable file
+
+## Screenshots
+
+<div align="center">
+<img src="./img/1.jpg" height="300px" alt=""><img src="./img/2.jpg" height="300px" alt="" >  
+</div>
+<br>
+<br>
+<div align="center">
+<img src="./img/3.jpg" height="300px" alt=""><img src="./img/4.jpg" height="300px" alt="" >  </div>
+
 
 ## Example of a profile
 
