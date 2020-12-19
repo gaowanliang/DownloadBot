@@ -29,7 +29,7 @@ func setCommands(bot *tgbotapi.BotAPI) {
 			Description: locText("tgCommandStartDes"),
 		}, {
 			Command:     "myid",
-			Description: locText("tgCommandMyidDes"),
+			Description: locText("tgCommandMyIDDes"),
 		},
 	})
 }
@@ -189,6 +189,8 @@ func removeFiles(bot *tgbotapi.BotAPI) {
 	for {
 		a := <-FileControlChan
 		if a == "close" {
+			tgbotapi.NewDeleteMessage(myID, MessageID)
+			bot.Send(tgbotapi.NewDeleteMessage(myID, MessageID))
 			return
 		}
 		b := strings.Split(a, "~")
@@ -235,6 +237,88 @@ func removeFiles(bot *tgbotapi.BotAPI) {
 		Keyboards = append(Keyboards, inlineKeyBoardRow)
 		inlineKeyBoardRow = make([]tgbotapi.InlineKeyboardButton, 0)
 		inlineKeyBoardRow = append(inlineKeyBoardRow, tgbotapi.NewInlineKeyboardButtonData(locText("confirmDelete"), "file~Delete"+":9"))
+		inlineKeyBoardRow = append(inlineKeyBoardRow, tgbotapi.NewInlineKeyboardButtonData(locText("cancel"), "file~cancel"+":9"))
+		Keyboards = append(Keyboards, inlineKeyBoardRow)
+
+		msg := tgbotapi.NewMessage(myID, text)
+		if MessageID == 0 {
+			msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(Keyboards...)
+			res, err := bot.Send(msg)
+			dropErr(err)
+			MessageID = res.MessageID
+
+		} else {
+			newMsg := tgbotapi.NewEditMessageTextAndMarkup(myID, MessageID, text, tgbotapi.NewInlineKeyboardMarkup(Keyboards...))
+			bot.Send(newMsg)
+		}
+	}
+}
+
+func copyFiles(bot *tgbotapi.BotAPI) {
+	s := <-FileControlChan
+	if s == "file" {
+		FileControlChan <- "file"
+	}
+	var MessageID = 0
+	var filesSelect = make(map[int]bool)
+	fileList, _ := GetAllFile(info.DownloadFolder)
+	myID := toInt64(info.UserID)
+	if len(fileList) == 1 {
+		bot.Send(tgbotapi.NewMessage(myID, locText("noFilesFound")))
+		return
+	}
+	copyFiles := make([]string, 0)
+	for {
+		a := <-FileControlChan
+		if a == "close" {
+			tgbotapi.NewDeleteMessage(myID, MessageID)
+			bot.Send(tgbotapi.NewDeleteMessage(myID, MessageID))
+			return
+		}
+		b := strings.Split(a, "~")
+		fileTree := ""
+		if len(b) == 1 {
+			filesSelect = make(map[int]bool)
+			for i := 1; i <= len(fileList); i++ {
+				filesSelect[i] = true
+			}
+			fileTree, filesSelect, copyFiles = printFolderTree(info.DownloadFolder, filesSelect, "0")
+		} else {
+			if b[1] == "cancel" {
+				tgbotapi.NewDeleteMessage(myID, MessageID)
+				bot.Send(tgbotapi.NewDeleteMessage(myID, MessageID))
+				return
+			} else if b[1] == "Copy" {
+				CopyFiles(copyFiles)
+				bot.Send(tgbotapi.NewDeleteMessage(myID, MessageID))
+				bot.Send(tgbotapi.NewMessage(myID, locText("filesCopySuccessfully")))
+				return
+			}
+			fileTree, filesSelect, copyFiles = printFolderTree(info.DownloadFolder, filesSelect, b[1])
+		}
+
+		text := fmt.Sprintf("%s %s\n", info.DownloadFolder, locText("fileDirectoryIsAsFollows")) + fileTree
+		Keyboards := make([][]tgbotapi.InlineKeyboardButton, 0)
+		inlineKeyBoardRow := make([]tgbotapi.InlineKeyboardButton, 0)
+		index := 1
+		for _, _ = range fileList {
+			inlineKeyBoardRow = append(inlineKeyBoardRow, tgbotapi.NewInlineKeyboardButtonData(fmt.Sprint(index), "file~"+fmt.Sprint(index)+":8"))
+			if index%7 == 0 {
+				Keyboards = append(Keyboards, inlineKeyBoardRow)
+				inlineKeyBoardRow = make([]tgbotapi.InlineKeyboardButton, 0)
+			}
+			index++
+		}
+		text += locText("pleaseSelectTheFileYouWantToCopy")
+		if len(inlineKeyBoardRow) != 0 {
+			Keyboards = append(Keyboards, inlineKeyBoardRow)
+		}
+		inlineKeyBoardRow = make([]tgbotapi.InlineKeyboardButton, 0)
+		inlineKeyBoardRow = append(inlineKeyBoardRow, tgbotapi.NewInlineKeyboardButtonData(locText("selectAll"), "file~selectAll"+":9"))
+		inlineKeyBoardRow = append(inlineKeyBoardRow, tgbotapi.NewInlineKeyboardButtonData(locText("invert"), "file~invert"+":9"))
+		Keyboards = append(Keyboards, inlineKeyBoardRow)
+		inlineKeyBoardRow = make([]tgbotapi.InlineKeyboardButton, 0)
+		inlineKeyBoardRow = append(inlineKeyBoardRow, tgbotapi.NewInlineKeyboardButtonData(locText("confirmCopy"), "file~Copy"+":9"))
 		inlineKeyBoardRow = append(inlineKeyBoardRow, tgbotapi.NewInlineKeyboardButtonData(locText("cancel"), "file~cancel"+":9"))
 		Keyboards = append(Keyboards, inlineKeyBoardRow)
 
@@ -398,7 +482,7 @@ func tgBot(BotKey string, wg *sync.WaitGroup) {
 					if res != "" {
 						msg.Text = res
 					} else {
-						msg.Text = locText("noWaittingTask")
+						msg.Text = locText("noWaitingTask")
 					}
 				case locText("nowOver"):
 					res := formatTellSomething(aria2Rpc.TellStopped(0, info.MaxIndex))
@@ -422,7 +506,7 @@ func tgBot(BotKey string, wg *sync.WaitGroup) {
 						}
 						msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(InlineKeyboards...)
 					} else {
-						msg.Text = locText("noWaittingTask")
+						msg.Text = locText("noWaitingTask")
 					}
 				case locText("resumeTask"):
 
@@ -470,12 +554,18 @@ func tgBot(BotKey string, wg *sync.WaitGroup) {
 					FileControlChan <- "close"
 					go removeFiles(bot)
 					FileControlChan <- "file"
-				case locText("uploadDownloadFolderFiles"):
-					//msg.Text = printFolderTree(info.DownloadFolder)
-					//msg.ParseMode = ""
-					//dropErr(removeContents(info.DownloadFolder))
-					//go removeFiles(bot)
-					//FileControlChan <- "file"
+				case locText("moveDownloadFolderFiles"):
+					isFileChanClean := false
+					for !isFileChanClean {
+						select {
+						case _ = <-FileControlChan:
+						default:
+							isFileChanClean = true
+						}
+					}
+					FileControlChan <- "close"
+					go copyFiles(bot)
+					FileControlChan <- "file"
 				default:
 					if !download(update.Message.Text) {
 						msg.Text = locText("unknownLink")
@@ -510,12 +600,12 @@ func tgBot(BotKey string, wg *sync.WaitGroup) {
 				case "help":
 					msg.Text = locText("commandHelpRes")
 				case "myid":
-					msg.Text = fmt.Sprintf(locText("commandMyidRes"), update.Message.Chat.ID)
+					msg.Text = fmt.Sprintf(locText("commandMyIDRes"), update.Message.Chat.ID)
 				}
 			} else {
 				msg.Text = locText("doNotHavePermissionControl")
 				if update.Message.Command() == "myid" {
-					msg.Text = fmt.Sprintf(locText("commandMyidRes"), update.Message.Chat.ID)
+					msg.Text = fmt.Sprintf(locText("commandMyIDRes"), update.Message.Chat.ID)
 				}
 			}
 

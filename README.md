@@ -20,7 +20,7 @@ At the same time, communication via the bot protocol facilitates use on machines
   - [ ] Allow users to create public WebSocket relays for users who are not comfortable establishing WebSocket communication
   - [ ] Deploy a separate WebSocket relay in heroku for relaying
 - [ ] [SimpleTorrent](https://github.com/boypt/simple-torrent) control
-- [ ] qbitBitTorrent control
+- [ ] qbittorrent control
 
 
 #### The Bot protocol supports
@@ -49,6 +49,7 @@ At the same time, communication via the bot protocol facilitates use on machines
       - [ ] Can be set to force seeding for a period of time at the end of each download
 - [x] Upload a file
   - [x] Upload the file to OneDrive when the download is complete
+    - [ ] Resume from break point
   - [ ] Upload the file to Google Drive when the download is complete
   - [ ] Upload the file to Mega when the download is complete
   - [ ] Upload the file to 189Cloud when the download is complete
@@ -92,12 +93,11 @@ At the same time, communication via the bot protocol facilitates use on machines
 ## Screenshots
 
 <div align="center">
-<img src="./img/1.jpg" height="300px" alt=""><img src="./img/2.jpg" height="300px" alt="" >  
+<img src="./img/1.jpg" height="300px" alt=""> <img src="./img/2.jpg" height="300px" alt="" >  
 </div>
 <br>
-<br>
 <div align="center">
-<img src="./img/3.jpg" height="300px" alt=""><img src="./img/4.jpg" height="300px" alt="" >  </div>
+<img src="./img/3.jpg" height="300px" alt=""> <img src="./img/4.jpg" height="300px" alt="" >  </div>
 
 
 ## Example of a profile

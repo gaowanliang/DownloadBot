@@ -19,7 +19,7 @@
   - [ ] 允许用户建立公共WebSocket中继端，供不方便建立WebSocket通信的用户进行通信
   - [ ] 在heroku单独部署WebSocket中继端进行中继
 - [ ] [SimpleTorrent](https://github.com/boypt/simple-torrent) 控制
-- [ ] qbitBitTorrent 控制
+- [ ] qbittorrent 控制
 
 
 #### 机器人协议支持
@@ -95,12 +95,12 @@
 ## 使用截图
 
 <div align="center">
-<img src="./img/1.jpg" height="300px" alt=""><img src="./img/2.jpg" height="300px" alt="" >  
+<img src="./img/1.jpg" height="300px" alt="">  <img src="./img/2.jpg" height="300px" alt="" >  
 </div>
 <br>
-<br>
+
 <div align="center">
-<img src="./img/3.jpg" height="300px" alt=""><img src="./img/4.jpg" height="300px" alt="" >  </div>
+<img src="./img/3.jpg" height="300px" alt="">  <img src="./img/4.jpg" height="300px" alt="" >  </div>
 
 
 ## 配置文件示例

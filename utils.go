@@ -6,8 +6,8 @@ import (
 	"github.com/shirou/gopsutil/cpu"
 	"github.com/shirou/gopsutil/disk"
 	"github.com/shirou/gopsutil/mem"
+	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"path"
@@ -130,7 +130,7 @@ func removeContents(boot int, pathname string, fileSelect map[int]bool) int {
 
 	for _, removePath := range res {
 		index++
-		log.Println(index, removePath)
+		//log.Println(index, removePath)
 		if fileSelect[index] || index != 1 {
 			err = os.RemoveAll(removePath)
 			dropErr(err)
@@ -142,13 +142,44 @@ func removeContents(boot int, pathname string, fileSelect map[int]bool) int {
 func RemoveFiles(deleteFiles []string) {
 	//removeContents(1, info.DownloadFolder, fileSelect)
 	for _, removePath := range deleteFiles {
-		log.Println(removePath)
+		//log.Println(removePath)
 		if removePath != info.DownloadFolder && removePath != info.DownloadFolder+"/" {
 			err := os.RemoveAll(removePath)
 			dropErr(err)
 		}
 	}
 }
+func CopyFiles(srcFiles []string) {
+	destPath := info.MoveFolder
+	if destPath[:len(destPath)-1] != "/" {
+		destPath += "/"
+	}
+	for _, srcPath := range srcFiles {
+		if srcPath != info.DownloadFolder && srcPath != info.DownloadFolder+"/" {
+			//log.Println(srcPath)
+			file1, err := os.Open(srcPath)
+			dropErr(err)
+			file2, err := os.OpenFile(destPath+path.Base(srcPath), os.O_WRONLY|os.O_CREATE, os.ModePerm)
+			dropErr(err)
+			defer file1.Close()
+			defer file2.Close()
+			//拷贝数据
+			bs := make([]byte, 1024, 1024)
+			n := -1 //读取的数据量
+			total := 0
+			for {
+				n, err = file1.Read(bs)
+				if err == io.EOF || n == 0 {
+					break
+				}
+				dropErr(err)
+				total += n
+				_, err = file2.Write(bs[:n])
+			}
+		}
+	}
+}
+
 func GetAllFile(pathname string) ([][]string, int64) {
 	if pathname[:len(pathname)-1] != "/" {
 		pathname += "/"
