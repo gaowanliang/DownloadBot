@@ -11,7 +11,7 @@ import (
 	"strings"
 	"sync"
 
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api"
+	tgBotApi "github.com/go-telegram-bot-api/telegram-bot-api"
 )
 
 // SuddenMessageChan receive active requests from WebSocket
@@ -22,8 +22,8 @@ var TMSelectMessageChan = make(chan string, 3)
 
 var FileControlChan = make(chan string, 3)
 
-func setCommands(bot *tgbotapi.BotAPI) {
-	_ = bot.SetMyCommands([]tgbotapi.BotCommand{
+func setCommands(bot *tgBotApi.BotAPI) {
+	_ = bot.SetMyCommands([]tgBotApi.BotCommand{
 		{
 			Command:     "start",
 			Description: locText("tgCommandStartDes"),
@@ -35,7 +35,7 @@ func setCommands(bot *tgbotapi.BotAPI) {
 }
 
 // SuddenMessage receive active requests from WebSocket
-func SuddenMessage(bot *tgbotapi.BotAPI) {
+func SuddenMessage(bot *tgBotApi.BotAPI) {
 	for {
 		a := <-SuddenMessageChan
 		gid := a[2:18]
@@ -44,7 +44,7 @@ func SuddenMessage(bot *tgbotapi.BotAPI) {
 		}
 		myID, err := strconv.ParseInt(info.UserID, 10, 64)
 		dropErr(err)
-		msg := tgbotapi.NewMessage(myID, a)
+		msg := tgBotApi.NewMessage(myID, a)
 		if _, err := bot.Send(msg); err != nil {
 			log.Panic(err)
 		}
@@ -52,7 +52,7 @@ func SuddenMessage(bot *tgbotapi.BotAPI) {
 }
 
 // TMSelectMessage receive active requests from WebSocket
-func TMSelectMessage(bot *tgbotapi.BotAPI) {
+func TMSelectMessage(bot *tgBotApi.BotAPI) {
 	var MessageID = 0
 	var lastGid = ""
 	var lastFilesInfo [][]string
@@ -122,8 +122,8 @@ func TMSelectMessage(bot *tgbotapi.BotAPI) {
 		}
 
 		text := fmt.Sprintf("%s %s\n", tellName(aria2Rpc.TellStatus(gid)), locText("fileDirectoryIsAsFollows"))
-		Keyboards := make([][]tgbotapi.InlineKeyboardButton, 0)
-		inlineKeyBoardRow := make([]tgbotapi.InlineKeyboardButton, 0)
+		Keyboards := make([][]tgBotApi.InlineKeyboardButton, 0)
+		inlineKeyBoardRow := make([]tgBotApi.InlineKeyboardButton, 0)
 		index := 1
 
 		for i, file := range fileList {
@@ -132,10 +132,10 @@ func TMSelectMessage(bot *tgbotapi.BotAPI) {
 				isSelect = "✅"
 			}
 			text += fmt.Sprintf("%s %d: %s    %s\n", isSelect, i+1, file[0], file[1])
-			inlineKeyBoardRow = append(inlineKeyBoardRow, tgbotapi.NewInlineKeyboardButtonData(fmt.Sprint(index), gid+"~"+fmt.Sprint(index)+":6"))
+			inlineKeyBoardRow = append(inlineKeyBoardRow, tgBotApi.NewInlineKeyboardButtonData(fmt.Sprint(index), gid+"~"+fmt.Sprint(index)+":6"))
 			if index%7 == 0 {
 				Keyboards = append(Keyboards, inlineKeyBoardRow)
-				inlineKeyBoardRow = make([]tgbotapi.InlineKeyboardButton, 0)
+				inlineKeyBoardRow = make([]tgBotApi.InlineKeyboardButton, 0)
 			}
 			index++
 		}
@@ -143,36 +143,36 @@ func TMSelectMessage(bot *tgbotapi.BotAPI) {
 		if len(inlineKeyBoardRow) != 0 {
 			Keyboards = append(Keyboards, inlineKeyBoardRow)
 		}
-		inlineKeyBoardRow = make([]tgbotapi.InlineKeyboardButton, 0)
-		inlineKeyBoardRow = append(inlineKeyBoardRow, tgbotapi.NewInlineKeyboardButtonData(locText("selectAll"), gid+"~selectAll"+":7"))
-		inlineKeyBoardRow = append(inlineKeyBoardRow, tgbotapi.NewInlineKeyboardButtonData(locText("invert"), gid+"~invert"+":7"))
+		inlineKeyBoardRow = make([]tgBotApi.InlineKeyboardButton, 0)
+		inlineKeyBoardRow = append(inlineKeyBoardRow, tgBotApi.NewInlineKeyboardButtonData(locText("selectAll"), gid+"~selectAll"+":7"))
+		inlineKeyBoardRow = append(inlineKeyBoardRow, tgBotApi.NewInlineKeyboardButtonData(locText("invert"), gid+"~invert"+":7"))
 		Keyboards = append(Keyboards, inlineKeyBoardRow)
-		inlineKeyBoardRow = make([]tgbotapi.InlineKeyboardButton, 0)
-		inlineKeyBoardRow = append(inlineKeyBoardRow, tgbotapi.NewInlineKeyboardButtonData(locText("tmMode1"), gid+"~tmMode1"+":7"))
-		inlineKeyBoardRow = append(inlineKeyBoardRow, tgbotapi.NewInlineKeyboardButtonData(locText("tmMode2"), gid+"~tmMode2"+":7"))
+		inlineKeyBoardRow = make([]tgBotApi.InlineKeyboardButton, 0)
+		inlineKeyBoardRow = append(inlineKeyBoardRow, tgBotApi.NewInlineKeyboardButtonData(locText("tmMode1"), gid+"~tmMode1"+":7"))
+		inlineKeyBoardRow = append(inlineKeyBoardRow, tgBotApi.NewInlineKeyboardButtonData(locText("tmMode2"), gid+"~tmMode2"+":7"))
 		Keyboards = append(Keyboards, inlineKeyBoardRow)
-		inlineKeyBoardRow = make([]tgbotapi.InlineKeyboardButton, 0)
-		inlineKeyBoardRow = append(inlineKeyBoardRow, tgbotapi.NewInlineKeyboardButtonData(locText("startDownload"), gid+"~Start"+":7"))
+		inlineKeyBoardRow = make([]tgBotApi.InlineKeyboardButton, 0)
+		inlineKeyBoardRow = append(inlineKeyBoardRow, tgBotApi.NewInlineKeyboardButtonData(locText("startDownload"), gid+"~Start"+":7"))
 		Keyboards = append(Keyboards, inlineKeyBoardRow)
 		myID, err := strconv.ParseInt(info.UserID, 10, 64)
 		dropErr(err)
-		msg := tgbotapi.NewMessage(myID, text)
+		msg := tgBotApi.NewMessage(myID, text)
 		lastFilesInfo = fileList
 		if lastGid != gid {
-			msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(Keyboards...)
+			msg.ReplyMarkup = tgBotApi.NewInlineKeyboardMarkup(Keyboards...)
 			res, err := bot.Send(msg)
 			dropErr(err)
 			MessageID = res.MessageID
 			lastGid = gid
 		} else {
-			newMsg := tgbotapi.NewEditMessageTextAndMarkup(myID, MessageID, text, tgbotapi.NewInlineKeyboardMarkup(Keyboards...))
+			newMsg := tgBotApi.NewEditMessageTextAndMarkup(myID, MessageID, text, tgBotApi.NewInlineKeyboardMarkup(Keyboards...))
 			bot.Send(newMsg)
 		}
 
 	}
 }
 
-func removeFiles(bot *tgbotapi.BotAPI) {
+func removeFiles(bot *tgBotApi.BotAPI) {
 	s := <-FileControlChan
 	if s == "file" {
 		FileControlChan <- "file"
@@ -182,15 +182,15 @@ func removeFiles(bot *tgbotapi.BotAPI) {
 	fileList, _ := GetAllFile(info.DownloadFolder)
 	myID := toInt64(info.UserID)
 	if len(fileList) == 1 {
-		bot.Send(tgbotapi.NewMessage(myID, locText("noFilesFound")))
+		bot.Send(tgBotApi.NewMessage(myID, locText("noFilesFound")))
 		return
 	}
 	deleteFiles := make([]string, 0)
 	for {
 		a := <-FileControlChan
 		if a == "close" {
-			tgbotapi.NewDeleteMessage(myID, MessageID)
-			bot.Send(tgbotapi.NewDeleteMessage(myID, MessageID))
+			//tgBotApi.NewDeleteMessage(myID, MessageID)
+			bot.Send(tgBotApi.NewDeleteMessage(myID, MessageID))
 			return
 		}
 		b := strings.Split(a, "~")
@@ -203,27 +203,27 @@ func removeFiles(bot *tgbotapi.BotAPI) {
 			fileTree, filesSelect, deleteFiles = printFolderTree(info.DownloadFolder, filesSelect, "0")
 		} else {
 			if b[1] == "cancel" {
-				tgbotapi.NewDeleteMessage(myID, MessageID)
-				bot.Send(tgbotapi.NewDeleteMessage(myID, MessageID))
+				tgBotApi.NewDeleteMessage(myID, MessageID)
+				bot.Send(tgBotApi.NewDeleteMessage(myID, MessageID))
 				return
 			} else if b[1] == "Delete" {
 				RemoveFiles(deleteFiles)
-				bot.Send(tgbotapi.NewDeleteMessage(myID, MessageID))
-				bot.Send(tgbotapi.NewMessage(myID, locText("filesDeletedSuccessfully")))
+				bot.Send(tgBotApi.NewDeleteMessage(myID, MessageID))
+				bot.Send(tgBotApi.NewMessage(myID, locText("filesDeletedSuccessfully")))
 				return
 			}
 			fileTree, filesSelect, deleteFiles = printFolderTree(info.DownloadFolder, filesSelect, b[1])
 		}
 
 		text := fmt.Sprintf("%s %s\n", info.DownloadFolder, locText("fileDirectoryIsAsFollows")) + fileTree
-		Keyboards := make([][]tgbotapi.InlineKeyboardButton, 0)
-		inlineKeyBoardRow := make([]tgbotapi.InlineKeyboardButton, 0)
+		Keyboards := make([][]tgBotApi.InlineKeyboardButton, 0)
+		inlineKeyBoardRow := make([]tgBotApi.InlineKeyboardButton, 0)
 		index := 1
 		for _, _ = range fileList {
-			inlineKeyBoardRow = append(inlineKeyBoardRow, tgbotapi.NewInlineKeyboardButtonData(fmt.Sprint(index), "file~"+fmt.Sprint(index)+":8"))
+			inlineKeyBoardRow = append(inlineKeyBoardRow, tgBotApi.NewInlineKeyboardButtonData(fmt.Sprint(index), "file~"+fmt.Sprint(index)+":8"))
 			if index%7 == 0 {
 				Keyboards = append(Keyboards, inlineKeyBoardRow)
-				inlineKeyBoardRow = make([]tgbotapi.InlineKeyboardButton, 0)
+				inlineKeyBoardRow = make([]tgBotApi.InlineKeyboardButton, 0)
 			}
 			index++
 		}
@@ -231,30 +231,30 @@ func removeFiles(bot *tgbotapi.BotAPI) {
 		if len(inlineKeyBoardRow) != 0 {
 			Keyboards = append(Keyboards, inlineKeyBoardRow)
 		}
-		inlineKeyBoardRow = make([]tgbotapi.InlineKeyboardButton, 0)
-		inlineKeyBoardRow = append(inlineKeyBoardRow, tgbotapi.NewInlineKeyboardButtonData(locText("selectAll"), "file~selectAll"+":9"))
-		inlineKeyBoardRow = append(inlineKeyBoardRow, tgbotapi.NewInlineKeyboardButtonData(locText("invert"), "file~invert"+":9"))
+		inlineKeyBoardRow = make([]tgBotApi.InlineKeyboardButton, 0)
+		inlineKeyBoardRow = append(inlineKeyBoardRow, tgBotApi.NewInlineKeyboardButtonData(locText("selectAll"), "file~selectAll"+":9"))
+		inlineKeyBoardRow = append(inlineKeyBoardRow, tgBotApi.NewInlineKeyboardButtonData(locText("invert"), "file~invert"+":9"))
 		Keyboards = append(Keyboards, inlineKeyBoardRow)
-		inlineKeyBoardRow = make([]tgbotapi.InlineKeyboardButton, 0)
-		inlineKeyBoardRow = append(inlineKeyBoardRow, tgbotapi.NewInlineKeyboardButtonData(locText("confirmDelete"), "file~Delete"+":9"))
-		inlineKeyBoardRow = append(inlineKeyBoardRow, tgbotapi.NewInlineKeyboardButtonData(locText("cancel"), "file~cancel"+":9"))
+		inlineKeyBoardRow = make([]tgBotApi.InlineKeyboardButton, 0)
+		inlineKeyBoardRow = append(inlineKeyBoardRow, tgBotApi.NewInlineKeyboardButtonData(locText("confirmDelete"), "file~Delete"+":9"))
+		inlineKeyBoardRow = append(inlineKeyBoardRow, tgBotApi.NewInlineKeyboardButtonData(locText("cancel"), "file~cancel"+":9"))
 		Keyboards = append(Keyboards, inlineKeyBoardRow)
 
-		msg := tgbotapi.NewMessage(myID, text)
+		msg := tgBotApi.NewMessage(myID, text)
 		if MessageID == 0 {
-			msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(Keyboards...)
+			msg.ReplyMarkup = tgBotApi.NewInlineKeyboardMarkup(Keyboards...)
 			res, err := bot.Send(msg)
 			dropErr(err)
 			MessageID = res.MessageID
 
 		} else {
-			newMsg := tgbotapi.NewEditMessageTextAndMarkup(myID, MessageID, text, tgbotapi.NewInlineKeyboardMarkup(Keyboards...))
+			newMsg := tgBotApi.NewEditMessageTextAndMarkup(myID, MessageID, text, tgBotApi.NewInlineKeyboardMarkup(Keyboards...))
 			bot.Send(newMsg)
 		}
 	}
 }
 
-func copyFiles(bot *tgbotapi.BotAPI) {
+func copyFiles(bot *tgBotApi.BotAPI) {
 	s := <-FileControlChan
 	if s == "file" {
 		FileControlChan <- "file"
@@ -264,15 +264,15 @@ func copyFiles(bot *tgbotapi.BotAPI) {
 	fileList, _ := GetAllFile(info.DownloadFolder)
 	myID := toInt64(info.UserID)
 	if len(fileList) == 1 {
-		bot.Send(tgbotapi.NewMessage(myID, locText("noFilesFound")))
+		bot.Send(tgBotApi.NewMessage(myID, locText("noFilesFound")))
 		return
 	}
 	copyFiles := make([]string, 0)
 	for {
 		a := <-FileControlChan
 		if a == "close" {
-			tgbotapi.NewDeleteMessage(myID, MessageID)
-			bot.Send(tgbotapi.NewDeleteMessage(myID, MessageID))
+			//tgBotApi.NewDeleteMessage(myID, MessageID)
+			bot.Send(tgBotApi.NewDeleteMessage(myID, MessageID))
 			return
 		}
 		b := strings.Split(a, "~")
@@ -285,27 +285,27 @@ func copyFiles(bot *tgbotapi.BotAPI) {
 			fileTree, filesSelect, copyFiles = printFolderTree(info.DownloadFolder, filesSelect, "0")
 		} else {
 			if b[1] == "cancel" {
-				tgbotapi.NewDeleteMessage(myID, MessageID)
-				bot.Send(tgbotapi.NewDeleteMessage(myID, MessageID))
+				tgBotApi.NewDeleteMessage(myID, MessageID)
+				bot.Send(tgBotApi.NewDeleteMessage(myID, MessageID))
 				return
 			} else if b[1] == "Copy" {
 				CopyFiles(copyFiles)
-				bot.Send(tgbotapi.NewDeleteMessage(myID, MessageID))
-				bot.Send(tgbotapi.NewMessage(myID, locText("filesCopySuccessfully")))
+				bot.Send(tgBotApi.NewDeleteMessage(myID, MessageID))
+				bot.Send(tgBotApi.NewMessage(myID, locText("filesCopySuccessfully")))
 				return
 			}
 			fileTree, filesSelect, copyFiles = printFolderTree(info.DownloadFolder, filesSelect, b[1])
 		}
 
 		text := fmt.Sprintf("%s %s\n", info.DownloadFolder, locText("fileDirectoryIsAsFollows")) + fileTree
-		Keyboards := make([][]tgbotapi.InlineKeyboardButton, 0)
-		inlineKeyBoardRow := make([]tgbotapi.InlineKeyboardButton, 0)
+		Keyboards := make([][]tgBotApi.InlineKeyboardButton, 0)
+		inlineKeyBoardRow := make([]tgBotApi.InlineKeyboardButton, 0)
 		index := 1
 		for _, _ = range fileList {
-			inlineKeyBoardRow = append(inlineKeyBoardRow, tgbotapi.NewInlineKeyboardButtonData(fmt.Sprint(index), "file~"+fmt.Sprint(index)+":8"))
+			inlineKeyBoardRow = append(inlineKeyBoardRow, tgBotApi.NewInlineKeyboardButtonData(fmt.Sprint(index), "file~"+fmt.Sprint(index)+":8"))
 			if index%7 == 0 {
 				Keyboards = append(Keyboards, inlineKeyBoardRow)
-				inlineKeyBoardRow = make([]tgbotapi.InlineKeyboardButton, 0)
+				inlineKeyBoardRow = make([]tgBotApi.InlineKeyboardButton, 0)
 			}
 			index++
 		}
@@ -313,51 +313,75 @@ func copyFiles(bot *tgbotapi.BotAPI) {
 		if len(inlineKeyBoardRow) != 0 {
 			Keyboards = append(Keyboards, inlineKeyBoardRow)
 		}
-		inlineKeyBoardRow = make([]tgbotapi.InlineKeyboardButton, 0)
-		inlineKeyBoardRow = append(inlineKeyBoardRow, tgbotapi.NewInlineKeyboardButtonData(locText("selectAll"), "file~selectAll"+":9"))
-		inlineKeyBoardRow = append(inlineKeyBoardRow, tgbotapi.NewInlineKeyboardButtonData(locText("invert"), "file~invert"+":9"))
+		inlineKeyBoardRow = make([]tgBotApi.InlineKeyboardButton, 0)
+		inlineKeyBoardRow = append(inlineKeyBoardRow, tgBotApi.NewInlineKeyboardButtonData(locText("selectAll"), "file~selectAll"+":9"))
+		inlineKeyBoardRow = append(inlineKeyBoardRow, tgBotApi.NewInlineKeyboardButtonData(locText("invert"), "file~invert"+":9"))
 		Keyboards = append(Keyboards, inlineKeyBoardRow)
-		inlineKeyBoardRow = make([]tgbotapi.InlineKeyboardButton, 0)
-		inlineKeyBoardRow = append(inlineKeyBoardRow, tgbotapi.NewInlineKeyboardButtonData(locText("confirmCopy"), "file~Copy"+":9"))
-		inlineKeyBoardRow = append(inlineKeyBoardRow, tgbotapi.NewInlineKeyboardButtonData(locText("cancel"), "file~cancel"+":9"))
+		inlineKeyBoardRow = make([]tgBotApi.InlineKeyboardButton, 0)
+		inlineKeyBoardRow = append(inlineKeyBoardRow, tgBotApi.NewInlineKeyboardButtonData(locText("confirmCopy"), "file~Copy"+":9"))
+		inlineKeyBoardRow = append(inlineKeyBoardRow, tgBotApi.NewInlineKeyboardButtonData(locText("cancel"), "file~cancel"+":9"))
 		Keyboards = append(Keyboards, inlineKeyBoardRow)
 
-		msg := tgbotapi.NewMessage(myID, text)
+		msg := tgBotApi.NewMessage(myID, text)
 		if MessageID == 0 {
-			msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(Keyboards...)
+			msg.ReplyMarkup = tgBotApi.NewInlineKeyboardMarkup(Keyboards...)
 			res, err := bot.Send(msg)
 			dropErr(err)
 			MessageID = res.MessageID
 
 		} else {
-			newMsg := tgbotapi.NewEditMessageTextAndMarkup(myID, MessageID, text, tgbotapi.NewInlineKeyboardMarkup(Keyboards...))
+			newMsg := tgBotApi.NewEditMessageTextAndMarkup(myID, MessageID, text, tgBotApi.NewInlineKeyboardMarkup(Keyboards...))
 			bot.Send(newMsg)
 		}
 	}
 }
 
-func createKeyBoardRow(texts ...string) [][]tgbotapi.KeyboardButton {
-	Keyboards := make([][]tgbotapi.KeyboardButton, 0)
+var tBot *tgBotApi.BotAPI
+
+func sendAutoUpdateMessage() func(text string) {
+	MessageID := 0
+	myID := toInt64(info.UserID)
+	return func(text string) {
+		if MessageID == 0 {
+			msg := tgBotApi.NewMessage(myID, text)
+			msg.ParseMode = "Markdown"
+			res, err := tBot.Send(msg)
+			dropErr(err)
+			MessageID = res.MessageID
+		} else {
+			if text != "close" {
+				newMsg := tgBotApi.NewEditMessageText(myID, MessageID, text)
+				newMsg.ParseMode = "Markdown"
+				tBot.Send(newMsg)
+			} else {
+				tBot.Send(tgBotApi.NewDeleteMessage(myID, MessageID))
+			}
+		}
+		return
+	}
+}
+func createKeyBoardRow(texts ...string) [][]tgBotApi.KeyboardButton {
+	Keyboards := make([][]tgBotApi.KeyboardButton, 0)
 	for _, text := range texts {
-		Keyboards = append(Keyboards, tgbotapi.NewKeyboardButtonRow(
-			tgbotapi.NewKeyboardButton(text),
+		Keyboards = append(Keyboards, tgBotApi.NewKeyboardButtonRow(
+			tgBotApi.NewKeyboardButton(text),
 		))
 	}
 	return Keyboards
 }
-func createFilesInlineKeyBoardRow(filesInfos ...FilesInlineKeyboards) ([][]tgbotapi.InlineKeyboardButton, string) {
-	Keyboards := make([][]tgbotapi.InlineKeyboardButton, 0)
+func createFilesInlineKeyBoardRow(filesInfos ...FilesInlineKeyboards) ([][]tgBotApi.InlineKeyboardButton, string) {
+	Keyboards := make([][]tgBotApi.InlineKeyboardButton, 0)
 	text := ""
 	index := 1
-	inlineKeyBoardRow := make([]tgbotapi.InlineKeyboardButton, 0)
+	inlineKeyBoardRow := make([]tgBotApi.InlineKeyboardButton, 0)
 	for _, filesInfo := range filesInfos {
 		for _, GidAndName := range filesInfo.GidAndName {
 
 			text += fmt.Sprintf("%d: %s\n", index, GidAndName["Name"])
-			inlineKeyBoardRow = append(inlineKeyBoardRow, tgbotapi.NewInlineKeyboardButtonData(fmt.Sprint(index), GidAndName["GID"]+":"+filesInfo.Data))
+			inlineKeyBoardRow = append(inlineKeyBoardRow, tgBotApi.NewInlineKeyboardButtonData(fmt.Sprint(index), GidAndName["GID"]+":"+filesInfo.Data))
 			if index%7 == 0 {
 				Keyboards = append(Keyboards, inlineKeyBoardRow)
-				inlineKeyBoardRow = make([]tgbotapi.InlineKeyboardButton, 0)
+				inlineKeyBoardRow = make([]tgBotApi.InlineKeyboardButton, 0)
 			}
 			index++
 		}
@@ -371,43 +395,43 @@ func createFilesInlineKeyBoardRow(filesInfos ...FilesInlineKeyboards) ([][]tgbot
 	return Keyboards, text[:len(text)-1]
 }
 
-func createFunctionInlineKeyBoardRow(functionInfos ...FunctionInlineKeyboards) []tgbotapi.InlineKeyboardButton {
-	Keyboards := make([]tgbotapi.InlineKeyboardButton, 0)
+func createFunctionInlineKeyBoardRow(functionInfos ...FunctionInlineKeyboards) []tgBotApi.InlineKeyboardButton {
+	Keyboards := make([]tgBotApi.InlineKeyboardButton, 0)
 	for _, functionInfo := range functionInfos {
-		Keyboards = append(Keyboards, tgbotapi.NewInlineKeyboardButtonData(functionInfo.Describe, "ALL:"+functionInfo.Describe))
+		Keyboards = append(Keyboards, tgBotApi.NewInlineKeyboardButtonData(functionInfo.Describe, "ALL:"+functionInfo.Describe))
 	}
 	return Keyboards
 }
 
 func tgBot(BotKey string, wg *sync.WaitGroup) {
-	Keyboards := make([][]tgbotapi.KeyboardButton, 0)
-	Keyboards = append(Keyboards, tgbotapi.NewKeyboardButtonRow(
-		tgbotapi.NewKeyboardButton(locText("nowDownload")),
-		tgbotapi.NewKeyboardButton(locText("nowWaiting")),
-		tgbotapi.NewKeyboardButton(locText("nowOver")),
+	Keyboards := make([][]tgBotApi.KeyboardButton, 0)
+	Keyboards = append(Keyboards, tgBotApi.NewKeyboardButtonRow(
+		tgBotApi.NewKeyboardButton(locText("nowDownload")),
+		tgBotApi.NewKeyboardButton(locText("nowWaiting")),
+		tgBotApi.NewKeyboardButton(locText("nowOver")),
 	))
-	Keyboards = append(Keyboards, tgbotapi.NewKeyboardButtonRow(
-		tgbotapi.NewKeyboardButton(locText("pauseTask")),
-		tgbotapi.NewKeyboardButton(locText("resumeTask")),
-		tgbotapi.NewKeyboardButton(locText("removeTask")),
+	Keyboards = append(Keyboards, tgBotApi.NewKeyboardButtonRow(
+		tgBotApi.NewKeyboardButton(locText("pauseTask")),
+		tgBotApi.NewKeyboardButton(locText("resumeTask")),
+		tgBotApi.NewKeyboardButton(locText("removeTask")),
 	))
 	if isLocal(info.Aria2Server) {
-		Keyboards = append(Keyboards, tgbotapi.NewKeyboardButtonRow(
-			tgbotapi.NewKeyboardButton(locText("removeDownloadFolderFiles")),
+		Keyboards = append(Keyboards, tgBotApi.NewKeyboardButtonRow(
+			tgBotApi.NewKeyboardButton(locText("removeDownloadFolderFiles")),
 		))
-		Keyboards = append(Keyboards, tgbotapi.NewKeyboardButtonRow(
-			tgbotapi.NewKeyboardButton(locText("uploadDownloadFolderFiles")),
+		Keyboards = append(Keyboards, tgBotApi.NewKeyboardButtonRow(
+			tgBotApi.NewKeyboardButton(locText("uploadDownloadFolderFiles")),
 		))
-		Keyboards = append(Keyboards, tgbotapi.NewKeyboardButtonRow(
-			tgbotapi.NewKeyboardButton(locText("moveDownloadFolderFiles")),
+		Keyboards = append(Keyboards, tgBotApi.NewKeyboardButtonRow(
+			tgBotApi.NewKeyboardButton(locText("moveDownloadFolderFiles")),
 		))
 	}
 
-	var numericKeyboard = tgbotapi.NewReplyKeyboard(Keyboards...)
+	var numericKeyboard = tgBotApi.NewReplyKeyboard(Keyboards...)
 
-	bot, err := tgbotapi.NewBotAPI(BotKey)
+	bot, err := tgBotApi.NewBotAPI(BotKey)
 	dropErr(err)
-
+	tBot = bot
 	bot.Debug = false
 
 	log.Printf(locText("authorizedAccount"), bot.Self.UserName)
@@ -415,7 +439,7 @@ func tgBot(BotKey string, wg *sync.WaitGroup) {
 	// go receiveMessage(msgChan)
 	go SuddenMessage(bot)
 	go TMSelectMessage(bot)
-	u := tgbotapi.NewUpdate(0)
+	u := tgBotApi.NewUpdate(0)
 	u.Timeout = 60
 	setCommands(bot)
 	updates, err := bot.GetUpdatesChan(u)
@@ -427,42 +451,42 @@ func tgBot(BotKey string, wg *sync.WaitGroup) {
 			switch task[1] {
 			case "1":
 				aria2Rpc.Pause(task[0])
-				bot.AnswerCallbackQuery(tgbotapi.NewCallback(update.CallbackQuery.ID, locText("taskNowStop")))
+				bot.AnswerCallbackQuery(tgBotApi.NewCallback(update.CallbackQuery.ID, locText("taskNowStop")))
 			case "2":
 				aria2Rpc.Unpause(task[0])
-				bot.AnswerCallbackQuery(tgbotapi.NewCallback(update.CallbackQuery.ID, locText("taskNowResume")))
+				bot.AnswerCallbackQuery(tgBotApi.NewCallback(update.CallbackQuery.ID, locText("taskNowResume")))
 			case "3":
 				aria2Rpc.ForceRemove(task[0])
-				bot.AnswerCallbackQuery(tgbotapi.NewCallback(update.CallbackQuery.ID, locText("taskNowRemove")))
+				bot.AnswerCallbackQuery(tgBotApi.NewCallback(update.CallbackQuery.ID, locText("taskNowRemove")))
 			case "4":
 				aria2Rpc.PauseAll()
-				bot.AnswerCallbackQuery(tgbotapi.NewCallback(update.CallbackQuery.ID, locText("taskNowStopAll")))
+				bot.AnswerCallbackQuery(tgBotApi.NewCallback(update.CallbackQuery.ID, locText("taskNowStopAll")))
 			case "5":
 				aria2Rpc.UnpauseAll()
-				bot.AnswerCallbackQuery(tgbotapi.NewCallback(update.CallbackQuery.ID, locText("taskNowResumeAll")))
+				bot.AnswerCallbackQuery(tgBotApi.NewCallback(update.CallbackQuery.ID, locText("taskNowResumeAll")))
 			case "6":
 				TMSelectMessageChan <- task[0]
 				b := strings.Split(task[0], "~")
-				bot.AnswerCallbackQuery(tgbotapi.NewCallback(update.CallbackQuery.ID, locText("selected")+b[1]))
+				bot.AnswerCallbackQuery(tgBotApi.NewCallback(update.CallbackQuery.ID, locText("selected")+b[1]))
 			case "7":
 				TMSelectMessageChan <- task[0]
-				bot.AnswerCallbackQuery(tgbotapi.NewCallback(update.CallbackQuery.ID, locText("operationSuccess")))
+				bot.AnswerCallbackQuery(tgBotApi.NewCallback(update.CallbackQuery.ID, locText("operationSuccess")))
 			case "8":
 				FileControlChan <- task[0]
 				b := strings.Split(task[0], "~")
-				bot.AnswerCallbackQuery(tgbotapi.NewCallback(update.CallbackQuery.ID, locText("selected")+b[1]))
+				bot.AnswerCallbackQuery(tgBotApi.NewCallback(update.CallbackQuery.ID, locText("selected")+b[1]))
 			case "9":
 				FileControlChan <- task[0]
-				bot.AnswerCallbackQuery(tgbotapi.NewCallback(update.CallbackQuery.ID, locText("operationSuccess")))
+				bot.AnswerCallbackQuery(tgBotApi.NewCallback(update.CallbackQuery.ID, locText("operationSuccess")))
 			}
 
 			//fmt.Print(update)
 
-			//bot.Send(tgbotapi.NewMessage(update.CallbackQuery.Message.Chat.ID, update.CallbackQuery.Data))
+			//bot.Send(tgBotApi.NewMessage(update.CallbackQuery.Message.Chat.ID, update.CallbackQuery.Data))
 		}
 
 		if update.Message != nil { //
-			msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
+			msg := tgBotApi.NewMessage(update.Message.Chat.ID, "")
 			msg.ParseMode = "Markdown"
 			if fmt.Sprint(update.Message.Chat.ID) == info.UserID {
 
@@ -504,7 +528,7 @@ func tgBot(BotKey string, wg *sync.WaitGroup) {
 								Data:     "4",
 							}))
 						}
-						msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(InlineKeyboards...)
+						msg.ReplyMarkup = tgBotApi.NewInlineKeyboardMarkup(InlineKeyboards...)
 					} else {
 						msg.Text = locText("noWaitingTask")
 					}
@@ -522,7 +546,7 @@ func tgBot(BotKey string, wg *sync.WaitGroup) {
 								Data:     "5",
 							}))
 						}
-						msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(InlineKeyboards...)
+						msg.ReplyMarkup = tgBotApi.NewInlineKeyboardMarkup(InlineKeyboards...)
 					} else {
 						msg.Text = locText("noActiveTask")
 					}
@@ -537,7 +561,7 @@ func tgBot(BotKey string, wg *sync.WaitGroup) {
 					})
 					if len(InlineKeyboards) != 0 {
 						msg.Text = locText("removeWhichOne") + "\n" + text
-						msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(InlineKeyboards...)
+						msg.ReplyMarkup = tgBotApi.NewInlineKeyboardMarkup(InlineKeyboards...)
 					} else {
 						msg.Text = locText("noOverTask")
 					}
@@ -610,7 +634,7 @@ func tgBot(BotKey string, wg *sync.WaitGroup) {
 			}
 
 			if msg.Text != "" {
-				//bot.Send(tgbotapi.NewEditMessageText(update.Message.Chat.ID, 591, "123456"))
+				//bot.Send(tgBotApi.NewEditMessageText(update.Message.Chat.ID, 591, "123456"))
 				_, err := bot.Send(msg)
 				dropErr(err)
 			}

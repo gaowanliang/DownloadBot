@@ -75,5 +75,6 @@
   "systemInfo": "\n*CPU:* %.2f%% *硬盘:* %.2f%% *内存:* %.2f%%\n*总下载速度:* %s/s 📥\n*总上传速度:* %s/s 📤",
   "filesCopySuccessfully": "文件成功复制到moveFolder",
   "pleaseSelectTheFileYouWantToCopy": "请选择您要复制的文件",
-  "confirmCopy": "确定复制"
+  "confirmCopy": "确定复制",
+  "copyingTo": "*正在将* `%s` *复制到* `%s`"
 }

@@ -61,7 +61,7 @@
     "uploadDownloadFolderFiles": "Upload files in the download folder",
     "moveDownloadFolderFiles": "Move the files in the download folder",
     "confirmDelete": "Sure to delete",
-    "cancel": "cancel",
+    "cancel": "Cancel",
     "filesDeletedSuccessfully": "File was deleted successfully",
     "noFilesFound": "There are no files in the folder",
     "fileDirectoryIsAsFollows": "file directory is as follows:",
@@ -72,5 +72,9 @@
     "onlyMinutes": "%d m ",
     "onlySeconds": "%d s",
     "UnableEstimate": "Unable to estimate",
-    "systemInfo": "\n*CPU:* %.2f%% *DISK:* %.2f%% *RAM:* %.2f%%\n*DL:* %s/s 📥   *UL:* %s/s 📤"
+    "systemInfo": "\n*CPU:* %.2f%% *DISK:* %.2f%% *RAM:* %.2f%%\n*DL:* %s/s 📥   *UL:* %s/s 📤",
+    "filesCopySuccessfully": "File successfully copied to moveFolder",
+    "pleaseSelectTheFileYouWantToCopy": "Please select the file you want to copy",
+    "confirmCopy": "Sure to copy",
+    "copyingTo": "`%s` *is being copied to* `%s`"
 }

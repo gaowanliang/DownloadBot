@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -151,15 +152,42 @@ func RemoveFiles(deleteFiles []string) {
 }
 func CopyFiles(srcFiles []string) {
 	destPath := info.MoveFolder
+	downloadFolder := info.DownloadFolder
 	if destPath[:len(destPath)-1] != "/" {
 		destPath += "/"
 	}
+	if downloadFolder[:len(downloadFolder)-1] != "/" {
+		downloadFolder += "/"
+	}
+	newMsg := sendAutoUpdateMessage()
 	for _, srcPath := range srcFiles {
 		if srcPath != info.DownloadFolder && srcPath != info.DownloadFolder+"/" {
+			newMsg(fmt.Sprintf(locText(""), srcPath, destPath+path.Base(srcPath)))
 			//log.Println(srcPath)
 			file1, err := os.Open(srcPath)
 			dropErr(err)
-			file2, err := os.OpenFile(destPath+path.Base(srcPath), os.O_WRONLY|os.O_CREATE, os.ModePerm)
+			s, err := os.Stat(srcPath)
+			if err == nil {
+				//log.Println(strings.ReplaceAll(srcPath, downloadFolder, destPath))
+				if s.IsDir() {
+					_, err := os.Stat(strings.ReplaceAll(srcPath, downloadFolder, destPath))
+					if err != nil {
+						err = os.MkdirAll(strings.ReplaceAll(srcPath, downloadFolder, destPath), os.ModePerm)
+						dropErr(err)
+					} else {
+						continue
+					}
+				} else {
+					paths, _ := filepath.Split(strings.ReplaceAll(srcPath, downloadFolder, destPath))
+					_, err := os.Stat(paths)
+					if err != nil {
+						err = os.MkdirAll(paths, os.ModePerm)
+						dropErr(err)
+					}
+				}
+			}
+
+			file2, err := os.OpenFile(strings.ReplaceAll(srcPath, downloadFolder, destPath), os.O_WRONLY|os.O_CREATE, os.ModePerm)
 			dropErr(err)
 			defer file1.Close()
 			defer file2.Close()
@@ -178,6 +206,7 @@ func CopyFiles(srcFiles []string) {
 			}
 		}
 	}
+	newMsg("close")
 }
 
 func GetAllFile(pathname string) ([][]string, int64) {
