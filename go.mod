@@ -11,5 +11,6 @@ require (
 	github.com/nicksnyder/go-i18n/v2 v2.0.2
 	github.com/shirou/gopsutil v3.20.11+incompatible
 	github.com/technoweenie/multipartstreamer v1.0.1 // indirect
+	golang.org/x/sys v0.0.0-20201218084310-7d0127a74742 // indirect
 	golang.org/x/text v0.3.4
 )
