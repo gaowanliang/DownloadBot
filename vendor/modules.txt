@@ -27,7 +27,9 @@ github.com/shirou/gopsutil/mem
 # github.com/technoweenie/multipartstreamer v1.0.1
 ## explicit
 github.com/technoweenie/multipartstreamer
-# golang.org/x/sys v0.0.0-20190507160741-ecd444e8653b
+# golang.org/x/sys v0.0.0-20201218084310-7d0127a74742
+## explicit
+golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
 golang.org/x/sys/windows
 # golang.org/x/text v0.3.4
