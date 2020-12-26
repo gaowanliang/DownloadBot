@@ -15,6 +15,8 @@ At the same time, communication via the bot protocol facilitates use on machines
 
 #### Download method
 - [x] Aria2 control
+  - [ ] Persistent monitoring
+  - [ ] Disconnect and reconnect
 - [ ] Multi download server control at the same time
   - [ ] WebSocket communication between multiple servers via a server with a public IP
   - [ ] Allow users to create public WebSocket relays for users who are not comfortable establishing WebSocket communication

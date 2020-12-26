@@ -2,8 +2,8 @@ package main
 
 import (
 	"fmt"
-
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
@@ -336,6 +336,154 @@ func copyFiles(bot *tgBotApi.BotAPI) {
 	}
 }
 
+func uploadFiles(chatMsgID int, chatMsg string, bot *tgBotApi.BotAPI) {
+	_, err := os.Stat("info")
+	if err != nil {
+		err = os.MkdirAll("info", os.ModePerm)
+		dropErr(err)
+	}
+	s := <-FileControlChan
+	if s != "close" {
+		FileControlChan <- s
+	}
+	var MessageID = 0
+	myID := toInt64(info.UserID)
+	_, _ = bot.DeleteMessage(tgBotApi.DeleteMessageConfig{
+		ChatID:    myID,
+		MessageID: chatMsgID,
+	})
+	for {
+		a := <-FileControlChan
+		if a == "close" {
+			bot.Send(tgBotApi.NewDeleteMessage(myID, MessageID))
+			return
+		}
+		b := strings.Split(a, "~")
+		text := ""
+		log.Println(b)
+		Keyboards := make([][]tgBotApi.InlineKeyboardButton, 0)
+		if len(b) != 1 {
+			if b[1] == "cancel" {
+				tgBotApi.NewDeleteMessage(myID, MessageID)
+				bot.Send(tgBotApi.NewDeleteMessage(myID, MessageID))
+				return
+			} else {
+				switch b[0] {
+				case "onedrive":
+					switch b[1] {
+					case "new":
+						text = fmt.Sprintf(
+							`%s https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=ad5e65fd-856d-4356-aefc-537a9700c137&response_type=code&redirect_uri=http://localhost/onedrive-login&response_mode=query&scope=offline_access%%20User.Read%%20Files.ReadWrite.All`,
+							locText("oneDriveGetAccess"),
+						)
+					case "create":
+						mail := getNewOneDriveInfo(chatMsg)
+						text =locText("oneDriveOAuthFileCreateSuccess") + mail
+					}
+				case "odInfo":
+					uploadDFToOneDrive("./info/onedrive/" + b[1])
+				default:
+					switch b[1] {
+					case "1":
+						_, err := os.Stat("./info/onedrive")
+						if err != nil {
+							err = os.MkdirAll("./info/onedrive", os.ModePerm)
+							dropErr(err)
+						}
+						dir, _ := ioutil.ReadDir("./info/onedrive")
+						if len(dir) == 0 {
+							text = locText("noOneDriveInfo")
+							inlineKeyBoardRow := make([]tgBotApi.InlineKeyboardButton, 0)
+							inlineKeyBoardRow = append(inlineKeyBoardRow, tgBotApi.NewInlineKeyboardButtonData(locText("yes"), "onedrive~new"+":9"))
+							inlineKeyBoardRow = append(inlineKeyBoardRow, tgBotApi.NewInlineKeyboardButtonData(locText("no"), "onedrive~cancel"+":9"))
+							Keyboards = append(Keyboards, inlineKeyBoardRow)
+						} else {
+							text = locText("accountsAreCurrentlyLogin")
+							files := make([]string, 0)
+							rd, err := ioutil.ReadDir("./info/onedrive/")
+							dropErr(err)
+							index := 1
+							for _, fi := range rd {
+								if !fi.IsDir() {
+									if strings.HasSuffix(strings.ToLower(fi.Name()), ".json") {
+										files = append(files, fi.Name())
+										text += fmt.Sprintf("%d.%s\n", index, fi.Name())
+										index++
+									}
+								}
+							}
+							inlineKeyBoardRow := make([]tgBotApi.InlineKeyboardButton, 0)
+							index = 1
+							for _, name := range files {
+								inlineKeyBoardRow = append(inlineKeyBoardRow, tgBotApi.NewInlineKeyboardButtonData(fmt.Sprint(index), "odInfo~"+name+":9"))
+								if index%7 == 0 {
+									Keyboards = append(Keyboards, inlineKeyBoardRow)
+									inlineKeyBoardRow = make([]tgBotApi.InlineKeyboardButton, 0)
+								}
+								index++
+							}
+							if len(inlineKeyBoardRow) != 0 {
+								Keyboards = append(Keyboards, inlineKeyBoardRow)
+							}
+							inlineKeyBoardRow = make([]tgBotApi.InlineKeyboardButton, 0)
+							inlineKeyBoardRow = append(inlineKeyBoardRow, tgBotApi.NewInlineKeyboardButtonData(locText("cancel"), "upload~cancel"+":9"))
+							Keyboards = append(Keyboards, inlineKeyBoardRow)
+						}
+						text += locText("selectAccount")
+					case "Upload":
+						//CopyFiles(copyFiles)
+						bot.Send(tgBotApi.NewDeleteMessage(myID, MessageID))
+						bot.Send(tgBotApi.NewMessage(myID, locText("filesUploadSuccessfully")))
+						return
+					}
+				}
+			}
+
+		} else {
+			text = fmt.Sprintf(locText("chooseDrive"))
+
+			inlineKeyBoardRow := make([]tgBotApi.InlineKeyboardButton, 0)
+			index := 1
+			for i := 0; i < 4; i++ {
+				inlineKeyBoardRow = append(inlineKeyBoardRow, tgBotApi.NewInlineKeyboardButtonData(fmt.Sprint(index), "upload~"+fmt.Sprint(index)+":9"))
+				if index%7 == 0 {
+					Keyboards = append(Keyboards, inlineKeyBoardRow)
+					inlineKeyBoardRow = make([]tgBotApi.InlineKeyboardButton, 0)
+				}
+				index++
+			}
+			if len(inlineKeyBoardRow) != 0 {
+				Keyboards = append(Keyboards, inlineKeyBoardRow)
+			}
+			inlineKeyBoardRow = make([]tgBotApi.InlineKeyboardButton, 0)
+			inlineKeyBoardRow = append(inlineKeyBoardRow, tgBotApi.NewInlineKeyboardButtonData(locText("cancel"), "upload~cancel"+":9"))
+			Keyboards = append(Keyboards, inlineKeyBoardRow)
+		}
+
+		msg := tgBotApi.NewMessage(myID, text)
+		msg.ParseMode = "Markdown"
+		if MessageID == 0 {
+			if len(Keyboards) != 0 {
+				msg.ReplyMarkup = tgBotApi.NewInlineKeyboardMarkup(Keyboards...)
+			}
+			res, err := bot.Send(msg)
+			dropErr(err)
+			MessageID = res.MessageID
+
+		} else {
+
+			if len(Keyboards) != 0 {
+				newMsg := tgBotApi.NewEditMessageTextAndMarkup(myID, MessageID, text, tgBotApi.NewInlineKeyboardMarkup(Keyboards...))
+				bot.Send(newMsg)
+			} else {
+				newMsg := tgBotApi.NewEditMessageText(myID, MessageID, text)
+				bot.Send(newMsg)
+			}
+
+		}
+	}
+}
+
 var tBot *tgBotApi.BotAPI
 
 func sendAutoUpdateMessage() func(text string) {
@@ -590,8 +738,37 @@ func tgBot(BotKey string, wg *sync.WaitGroup) {
 					FileControlChan <- "close"
 					go copyFiles(bot)
 					FileControlChan <- "file"
+				case locText("uploadDownloadFolderFiles"):
+					isFileChanClean := false
+					for !isFileChanClean {
+						select {
+						case _ = <-FileControlChan:
+						default:
+							isFileChanClean = true
+						}
+					}
+					FileControlChan <- "close"
+					go uploadFiles(update.Message.MessageID, update.Message.Text, bot)
+					FileControlChan <- "upload"
 				default:
-					if !download(update.Message.Text) {
+					if strings.Contains(update.Message.Text, "localhost/onedrive-login") {
+						_, err := os.Stat("info/onedrive")
+						if err != nil {
+							err = os.MkdirAll("info/onedrive", os.ModePerm)
+							dropErr(err)
+						}
+						isFileChanClean := false
+						for !isFileChanClean {
+							select {
+							case _ = <-FileControlChan:
+							default:
+								isFileChanClean = true
+							}
+						}
+						FileControlChan <- "close"
+						go uploadFiles(update.Message.MessageID, update.Message.Text, bot)
+						FileControlChan <- "onedrive~create"
+					} else if !download(update.Message.Text) {
 						msg.Text = locText("unknownLink")
 					}
 					if update.Message.Document != nil {
@@ -608,6 +785,7 @@ func tgBot(BotKey string, wg *sync.WaitGroup) {
 							msg.Text = ""
 						}
 					}
+
 				}
 
 				// 从消息中提取命令。

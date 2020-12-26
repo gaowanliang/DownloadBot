@@ -4,19 +4,34 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"onedrive/api/restore/upload"
+	"onedrive/fileutil"
+	httpLocal "onedrive/graph/net/http"
+	"os"
+	"path"
+	"path/filepath"
 	"sync"
-	"v2/api/restore/upload"
-	"v2/fileutil"
-	httpLocal "v2/graph/net/http"
 )
 
 var bearerToken = ""
 var userID = ""
 
-func onedriveUpload(infoPath string, filePath string, threads int) {
-	userID, bearerToken = httpLocal.GetMyIDAndBearer(infoPath)
-	restoreOption := "orig"
+func ApplyForNewPass(url string) string {
+	return httpLocal.NewPassCheck(url)
+}
 
+func Upload(infoPath string, filePath string, threads int, sendMsg func() func(text string), locText func(text string) string) {
+	userID, bearerToken = httpLocal.GetMyIDAndBearer(infoPath)
+	// restoreOption := "orig"
+	oldDir, err := os.Getwd()
+	if err != nil {
+		log.Panic(err)
+	}
+	err = os.Chdir(filepath.Dir(filePath))
+	if err != nil {
+		log.Panic(err)
+	}
+	filePath = path.Base(filePath)
 	//Initialize the upload restore service
 	restoreSrvc := upload.GetRestoreService(http.DefaultClient)
 
@@ -27,10 +42,15 @@ func onedriveUpload(infoPath string, filePath string, threads int) {
 	}
 
 	//Call restore process based on alternate or original location 基于备用或原始位置调用还原过程
-	if restoreOption == "alt" {
+	/*if restoreOption == "alt" {
 		restoreToAltLoc(restoreSrvc, fileInfoToUpload)
 	} else {
 		restore(restoreSrvc, fileInfoToUpload, threads)
+	}*/
+	restore(restoreSrvc, fileInfoToUpload, threads, sendMsg, locText)
+	err = os.Chdir(oldDir)
+	if err != nil {
+		log.Panic(err)
 	}
 }
 func changeBlockSize(MB int) {
@@ -38,7 +58,7 @@ func changeBlockSize(MB int) {
 }
 
 //Restore to original location
-func restore(restoreSrvc *upload.RestoreService, filesToRestore map[string]fileutil.FileInfo, threads int) {
+func restore(restoreSrvc *upload.RestoreService, filesToRestore map[string]fileutil.FileInfo, threads int, sendMsg func() func(text string), locText func(text string) string) {
 	var wg sync.WaitGroup
 	pool := make(chan struct{}, threads)
 	for filePath, fileInfo := range filesToRestore {
@@ -49,14 +69,19 @@ func restore(restoreSrvc *upload.RestoreService, filesToRestore map[string]fileu
 			defer func() {
 				<-pool
 			}()
-			_, err := restoreSrvc.SimpleUploadToOriginalLoc(userID, bearerToken, "rename", filePath, fileInfo)
+			temp := sendMsg()
+			temp("`" + filePath + "`" + locText("startUploadOneDrive"))
+			_, err := restoreSrvc.SimpleUploadToOriginalLoc(userID, bearerToken, "rename", filePath, fileInfo, temp, locText)
 			if err != nil {
 				log.Panicf("Failed to Restore :%v", err)
 			}
 			//printResp(resp)
+			temp("close")
 		}(filePath, fileInfo)
 	}
 	wg.Wait()
+	temp := sendMsg()
+	defer temp(locText("uploadOneDriveComplete"))
 }
 
 func printResp(resp interface{}) {
@@ -72,7 +97,7 @@ func printResp(resp interface{}) {
 }
 
 //Restore to Alternate location 还原到备用位置
-func restoreToAltLoc(restoreSrvc *upload.RestoreService, filesToRestore map[string]fileutil.FileInfo) {
+func restoreToAltLoc(restoreSrvc *upload.RestoreService, filesToRestore map[string]fileutil.FileInfo, sendMsg func() func(text string), locText func(text string) string) {
 	rootFolder := fileutil.GetAlternateRootFolder()
 	var wg sync.WaitGroup
 	pool := make(chan struct{}, 10)
@@ -85,7 +110,9 @@ func restoreToAltLoc(restoreSrvc *upload.RestoreService, filesToRestore map[stri
 			defer func() {
 				<-pool
 			}()
-			_, err := restoreSrvc.SimpleUploadToAlternateLoc(userID, bearerToken, "rename", rootFilePath, fileItem)
+			temp := sendMsg()
+			temp(filePath + "开始上传至OneDrive")
+			_, err := restoreSrvc.SimpleUploadToAlternateLoc(userID, bearerToken, "rename", rootFilePath, fileItem, temp, locText)
 			if err != nil {
 				log.Panicf("Failed to Restore :%v", err)
 			}

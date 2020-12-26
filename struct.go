@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
-	"v2/rpc"
+	"DownloadBot/src/rpc"
 )
 
 // Config 是读入的配置文件的struct

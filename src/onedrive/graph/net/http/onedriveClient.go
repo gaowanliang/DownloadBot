@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"onedrive/fileutil"
 	"io"
 	"net/http"
 	"net/url"
 	"os"
-	"v2/fileutil"
 )
 
 const (
@@ -23,7 +23,7 @@ type OneDrive struct {
 	BaseURL string
 }
 
-// NewOneDriveClient returns a new OneDrive client to enable you to communicate with
+// NewOneDrive returns a new OneDrive client to enable you to communicate with
 // the API
 func NewOneDriveClient(c *http.Client, debug bool) *OneDrive {
 	drive := OneDrive{
@@ -78,7 +78,7 @@ func getRequestBody(body interface{}) (io.ReadWriter, error) {
 	return buf, nil
 }
 
-func isValidURL(uri string) bool {
+func isValidUrl(uri string) bool {
 	_, err := url.ParseRequestURI(uri)
 	if err != nil {
 		return false
@@ -92,14 +92,14 @@ func isValidURL(uri string) bool {
 	return true
 }
 
-// NewRequest can generate request
+// Generate request
 func (od *OneDrive) NewRequest(method, uri string, requestHeaders map[string]string, body interface{}) (*http.Request, error) {
 	reqBody, err := getRequestBody(body)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to parse the file into Bytes  reason: %v", err)
 	}
 	var req *http.Request
-	if isValidURL(uri) {
+	if isValidUrl(uri) {
 		req, err = http.NewRequest(method, uri, reqBody)
 	} else {
 		req, err = http.NewRequest(method, od.BaseURL+uri, reqBody)
@@ -121,7 +121,7 @@ func (od *OneDrive) NewRequest(method, uri string, requestHeaders map[string]str
 	return req, nil
 }
 
-//Do can execute request
+//Execute request
 func (od *OneDrive) Do(req *http.Request) (*http.Response, error) {
 	resp, err := od.Client.Do(req)
 	if err != nil {

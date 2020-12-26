@@ -3,11 +3,10 @@ package upload
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
+	"onedrive/fileutil"
 	"strconv"
 	"time"
-	"v2/fileutil"
 )
 
 const (
@@ -15,7 +14,7 @@ const (
 	uploadURLKey      = "uploadUrl"
 )
 
-func (rs *RestoreService) recoverableUpload(userID string, bearerToken string, conflictOption string, filePath string, fileInfo fileutil.FileInfo) ([]map[string]interface{}, error) {
+func (rs *RestoreService) recoverableUpload(userID string, bearerToken string, conflictOption string, filePath string, fileInfo fileutil.FileInfo, sendMsg func(text string)) ([]map[string]interface{}, error) {
 	//1. Get recoverable upload session for the current file path 获取当前文件路径的可压缩上载会话
 	uploadSessionData, err := rs.getUploadSession(userID, bearerToken, conflictOption, filePath)
 	if err != nil {
@@ -46,7 +45,9 @@ func (rs *RestoreService) recoverableUpload(userID string, bearerToken string, c
 			return nil, err
 		}
 		if i != 0 {
-			log.Printf("%s [%d/%d]  Speed:%s/s", filePath, i, len(startOfsetLst), byte2Readable(float64(fileutil.GetDefaultChunkSize())/float64(time.Now().UnixNano()-timeUnix)*float64(1000000000)))
+			sendMsg(fmt.Sprintf("`%s` `[%d/%d]`  Speed:%s/s", filePath, i, len(startOfsetLst), byte2Readable(float64(fileutil.GetDefaultChunkSize())/float64(time.Now().UnixNano()-timeUnix)*float64(1000000000))))
+		}else{
+			sendMsg(fmt.Sprintf("`%s` `[%d/%d]`  Speed:---", filePath, i, len(startOfsetLst)))
 		}
 
 		timeUnix = time.Now().UnixNano()
@@ -67,6 +68,7 @@ func (rs *RestoreService) recoverableUpload(userID string, bearerToken string, c
 		//fmt.Printf("%+v, status code: %s", respMap, resp.Status)
 		uploadResp = append(uploadResp, respMap)
 	}
+	sendMsg("close")
 	return uploadResp, nil
 }
 

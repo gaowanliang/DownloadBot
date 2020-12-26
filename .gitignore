@@ -4,3 +4,4 @@ temp.torrent
 .goreleaser.yml
 dist
 .idea
+info

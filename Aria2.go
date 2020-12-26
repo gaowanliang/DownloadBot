@@ -1,13 +1,13 @@
 package main
 
 import (
+	"DownloadBot/src/rpc"
 	"context"
 	"fmt"
 	"log"
 	"strconv"
 	"strings"
 	"time"
-	"v2/rpc"
 )
 
 var aria2Rpc rpc.Client
@@ -87,7 +87,7 @@ func formatTellSomething(info []rpc.StatusInfo, err error) string {
 				m["remainingTime"] += fmt.Sprintf(locText("onlySeconds"), seconds)
 			}
 			if m["remainingTime"] == "" {
-				m["remainingTime"]=locText("UnableEstimate")
+				m["remainingTime"] = locText("UnableEstimate")
 			}
 
 			if Files.Status == "paused" {

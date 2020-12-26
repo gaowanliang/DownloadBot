@@ -14,8 +14,10 @@
 #### 下載方式
 
 - [x] Aria2 控制
+  - [ ] 持久化監控
+  - [ ] 斷線重連
 - [ ] 多下載伺服器同時控制
-  - [ ] 多伺服器之間通過有公網的伺服器進行WebSocket通信
+  - [ ] 多伺服器之間通過有公網IP的伺服器進行WebSocket通信
   - [ ] 允許用戶建立公共WebSocket中繼端，供不方便建立WebSocket通信的用戶進行通信
   - [ ] 在heroku單獨部署WebSocket中繼端進行中繼
 - [ ] [SimpleTorrent](https://github.com/boypt/simple-torrent) 控制

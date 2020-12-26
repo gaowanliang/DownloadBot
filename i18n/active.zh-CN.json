@@ -58,7 +58,7 @@
   "selectAll": "🌝 全选",
   "invert": "🌚 反选",
   "startDownload": "🚀 开始下载",
-  "uploadDownloadFolderFiles": "上传下载文件夹内的文件",
+  "uploadDownloadFolderFiles": "上传下载文件夹内的所有文件",
   "moveDownloadFolderFiles": "移动下载文件夹内的文件",
   "confirmDelete": "确定删除",
   "cancel": "取消",
@@ -76,5 +76,20 @@
   "filesCopySuccessfully": "文件成功复制到moveFolder",
   "pleaseSelectTheFileYouWantToCopy": "请选择您要复制的文件",
   "confirmCopy": "确定复制",
-  "copyingTo": "*正在将* `%s` *复制到* `%s`"
+  "copyingTo": "*正在将* `%s` *复制到* `%s`",
+  "filesUploadSuccessfully": "文件成功上传至 ",
+  "chooseDrive": "请选择您要上传到的网盘:\n1.OneDrive\n2.Google Drive\n3.Mega\n4.天翼云盘\n*由于API限制，目前只能将下载文件夹整个上传，请删除您不需要的文件后再点击上传*",
+  "confirmUpload": "确定上传",
+  "yes": "是",
+  "no": "否",
+  "startUploadOneDrive": "开始上传至OneDrive",
+  "uploadOneDriveComplete": "DownloadFolder上传至OneDrive完成",
+  "oneDriveBigFile": "开始上传至OneDrive\n文件超过4MB，进入大文件通道",
+  "oneDriveSmallFile": "开始上传至OneDrive\n文件小于4MB，进入小文件通道，上传中......",
+  "oneDriveGetAccess": "请打开下面的网址，登录OneDrive账户后，将跳转后的网址复制后，发送给本Bot\n注意：本程序不会涉及您的隐私信息，请放心使用",
+  "oneDriveOAuthFileCreateSuccess": "OneDrive OAuth2文件创建成功，保存至：",
+  "noOneDriveInfo": "没有OneDrive上传配置，是否需要新建配置",
+  "accountsAreCurrentlyLogin": "目前登录的账号如下：\n",
+  "selectAccount": "请选择要上传到的账户"
+
 }
