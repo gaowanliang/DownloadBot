@@ -360,7 +360,7 @@ func uploadFiles(chatMsgID int, chatMsg string, bot *tgBotApi.BotAPI) {
 		}
 		b := strings.Split(a, "~")
 		text := ""
-		log.Println(b)
+		//log.Println(b)
 		Keyboards := make([][]tgBotApi.InlineKeyboardButton, 0)
 		if len(b) != 1 {
 			if b[1] == "cancel" {

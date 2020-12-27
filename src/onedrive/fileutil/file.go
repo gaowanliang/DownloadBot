@@ -63,31 +63,31 @@ func GetAllUploadItemsFrmSource(sourcePath string) (map[string]FileInfo, error) 
 }
 
 //GetFilePartInBytes can returns the file in parts based on the provided offset
-func GetFilePartInBytes(filePath string, startingOffset int64, isLastChunk bool) ([]byte, error) {
+func GetFilePartInBytes(buffer *[]byte,filePath string, startingOffset int64) error {
 	file, err := os.Open(filePath)
 	defer file.Close()
 
 	if err != nil {
-		return nil, err
+		return err
 	}
-	var buffer []byte
-	if isLastChunk {
+	//var buffer []byte
+	/*if isLastChunk {
 		lastChunkSize, err := GetLatsChunkSizeInBytes(filePath)
 		if err != nil {
-			return nil, err
+			return err
 		}
-		buffer = make([]byte, lastChunkSize)
+		//buffer = make([]byte, lastChunkSize)
 	} else {
-		buffer = make([]byte, defaultChunkSize)
-	}
+		//buffer = make([]byte, default_chunk_size)
+	}*/
 
-	_, err = file.ReadAt(buffer, startingOffset)
+	_, err = file.ReadAt(*buffer, startingOffset)
 	if err != nil {
 		if err != io.EOF {
-			return nil, fmt.Errorf("readAt: %v", err)
+			return fmt.Errorf("readAt: %v", err)
 		}
 	}
-	return buffer, nil
+	return  nil
 }
 
 //Returns the start offset chunk list based on the file size

@@ -3,8 +3,10 @@ package upload
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"onedrive/fileutil"
+	"runtime/debug"
 	"strconv"
 	"time"
 )
@@ -25,34 +27,40 @@ func (rs *RestoreService) recoverableUpload(userID string, bearerToken string, c
 	uploadURL := uploadSessionData[uploadURLKey].(string)
 
 	//3. Get the startOffset list for the file 获取文件的startOffset列表
-	startOfsetLst, err := fileutil.GetFileOffsetStash(filePath)
+	startOffsetLst, err := fileutil.GetFileOffsetStash(filePath)
 	if err != nil {
 		return nil, err
 	}
 
 	//4. Loop over the file start offset list to read files in chunk and upload in onedrive 在文件开始偏移量列表上循环以读取块中的文件并在onedrive中上载
 	var uploadResp []map[string]interface{}
-	lastChunkIndex := len(startOfsetLst) - 1
+	lastChunkIndex := len(startOffsetLst) - 1
 	var isLastChunk bool
 	timeUnix := time.Now().UnixNano()
-	for i, sOffset := range startOfsetLst {
+	var buffer = make([]byte, fileutil.GetDefaultChunkSize())
+	for i, sOffset := range startOffsetLst {
 		if i == lastChunkIndex {
-			isLastChunk = true
+			lastChunkSize, err := fileutil.GetLatsChunkSizeInBytes(filePath)
+			if err != nil {
+				log.Panic(err)
+			}
+			buffer = make([]byte, lastChunkSize)
 		}
+		filePartInBytes := &buffer
 		//4a. Get the bytes for the file based on the offset 根据偏移量获取文件的字节数
-		filePartInBytes, err := fileutil.GetFilePartInBytes(filePath, sOffset, isLastChunk)
+		err := fileutil.GetFilePartInBytes(filePartInBytes, filePath, sOffset)
 		if err != nil {
 			return nil, err
 		}
 		if i != 0 {
-			sendMsg(fmt.Sprintf("`%s` `[%d/%d]`  Speed:%s/s", filePath, i, len(startOfsetLst), byte2Readable(float64(fileutil.GetDefaultChunkSize())/float64(time.Now().UnixNano()-timeUnix)*float64(1000000000))))
+			sendMsg(fmt.Sprintf("`%s` `[%d/%d]`  Speed:%s/s", filePath, i, len(startOffsetLst), byte2Readable(float64(fileutil.GetDefaultChunkSize())/float64(time.Now().UnixNano()-timeUnix)*float64(1000000000))))
 		}else{
-			sendMsg(fmt.Sprintf("`%s` `[%d/%d]`  Speed:---", filePath, i, len(startOfsetLst)))
+			sendMsg(fmt.Sprintf("`%s` `[%d/%d]`  Speed:---", filePath, i, len(startOffsetLst)))
 		}
 
 		timeUnix = time.Now().UnixNano()
 		//3b. make a call to the upload url with the file part based on the offset. 使用基于偏移量的文件部分调用上载url。
-		resp, err := rs.uploadFilePart(uploadURL, filePath, bearerToken, filePartInBytes, sOffset, isLastChunk)
+		resp, err := rs.uploadFilePart(uploadURL, filePath, bearerToken, *filePartInBytes, sOffset, isLastChunk)
 
 		if err != nil {
 			return nil, err
@@ -67,6 +75,7 @@ func (rs *RestoreService) recoverableUpload(userID string, bearerToken string, c
 		}
 		//fmt.Printf("%+v, status code: %s", respMap, resp.Status)
 		uploadResp = append(uploadResp, respMap)
+		debug.FreeOSMemory()
 	}
 	sendMsg("close")
 	return uploadResp, nil

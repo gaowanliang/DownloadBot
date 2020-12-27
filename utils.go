@@ -11,7 +11,6 @@ import (
 	"golang.org/x/text/language"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"onedrive"
 	"os"
@@ -521,7 +520,7 @@ func getNewOneDriveInfo(url string) string {
 
 func uploadDFToOneDrive(infoPath string) {
 	FileControlChan <- "close"
-	log.Println(strings.ReplaceAll(info.DownloadFolder, "\\", "/"))
+	//log.Println(strings.ReplaceAll(info.DownloadFolder, "\\", "/"))
 	go onedrive.Upload(strings.ReplaceAll(infoPath, "\\", "/"), strings.ReplaceAll(info.DownloadFolder, "\\", "/"), 3, func() func(text string) {
 		return sendAutoUpdateMessage()
 	}, func(text string) string {
