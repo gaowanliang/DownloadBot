@@ -90,5 +90,7 @@
     "oneDriveOAuthFileCreateSuccess": "OneDrive OAuth2 file created successfully, save to:",
     "noOneDriveInfo": "No OneDrive upload configuration, do you need to create a new one?",
     "accountsAreCurrentlyLogin": "The following accounts are currently logged in:\n",
-    "selectAccount": "Please select the account to which you want to upload"
+    "selectAccount": "Please select the account to which you want to upload",
+    "ariaDisconnect": "Monitoring of aria2 disconnection, ready to reconnect",
+    "reconnectionFailed": "Failed to reconnect for the %d time, wait %d seconds to reconnect"
 }

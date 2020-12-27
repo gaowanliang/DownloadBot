@@ -5,11 +5,13 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
+	"math/rand"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	tgBotApi "github.com/go-telegram-bot-api/telegram-bot-api"
 )
@@ -172,7 +174,7 @@ func TMSelectMessage(bot *tgBotApi.BotAPI) {
 	}
 }
 
-func removeFiles(bot *tgBotApi.BotAPI) {
+func removeFiles(chatMsgID int, bot *tgBotApi.BotAPI) {
 	s := <-FileControlChan
 	if s == "file" {
 		FileControlChan <- "file"
@@ -181,6 +183,10 @@ func removeFiles(bot *tgBotApi.BotAPI) {
 	var filesSelect = make(map[int]bool)
 	fileList, _ := GetAllFile(info.DownloadFolder)
 	myID := toInt64(info.UserID)
+	_, _ = bot.DeleteMessage(tgBotApi.DeleteMessageConfig{
+		ChatID:    myID,
+		MessageID: chatMsgID,
+	})
 	if len(fileList) == 1 {
 		bot.Send(tgBotApi.NewMessage(myID, locText("noFilesFound")))
 		return
@@ -254,7 +260,7 @@ func removeFiles(bot *tgBotApi.BotAPI) {
 	}
 }
 
-func copyFiles(bot *tgBotApi.BotAPI) {
+func copyFiles(chatMsgID int, bot *tgBotApi.BotAPI) {
 	s := <-FileControlChan
 	if s == "file" {
 		FileControlChan <- "file"
@@ -263,6 +269,10 @@ func copyFiles(bot *tgBotApi.BotAPI) {
 	var filesSelect = make(map[int]bool)
 	fileList, _ := GetAllFile(info.DownloadFolder)
 	myID := toInt64(info.UserID)
+	_, _ = bot.DeleteMessage(tgBotApi.DeleteMessageConfig{
+		ChatID:    myID,
+		MessageID: chatMsgID,
+	})
 	if len(fileList) == 1 {
 		bot.Send(tgBotApi.NewMessage(myID, locText("noFilesFound")))
 		return
@@ -285,7 +295,7 @@ func copyFiles(bot *tgBotApi.BotAPI) {
 			fileTree, filesSelect, copyFiles = printFolderTree(info.DownloadFolder, filesSelect, "0")
 		} else {
 			if b[1] == "cancel" {
-				tgBotApi.NewDeleteMessage(myID, MessageID)
+				//tgBotApi.NewDeleteMessage(myID, MessageID)
 				bot.Send(tgBotApi.NewDeleteMessage(myID, MessageID))
 				return
 			} else if b[1] == "Copy" {
@@ -378,7 +388,7 @@ func uploadFiles(chatMsgID int, chatMsg string, bot *tgBotApi.BotAPI) {
 						)
 					case "create":
 						mail := getNewOneDriveInfo(chatMsg)
-						text =locText("oneDriveOAuthFileCreateSuccess") + mail
+						text = locText("oneDriveOAuthFileCreateSuccess") + mail
 					}
 				case "odInfo":
 					uploadDFToOneDrive("./info/onedrive/" + b[1])
@@ -481,6 +491,76 @@ func uploadFiles(chatMsgID int, chatMsg string, bot *tgBotApi.BotAPI) {
 			}
 
 		}
+	}
+}
+
+var activeRefreshControl = 0
+
+func activeRefresh(chatMsgID int, bot *tgBotApi.BotAPI, ticker *time.Ticker, flag int) {
+	var MessageID = 0
+	myID := toInt64(info.UserID)
+	for {
+		if activeRefreshControl != flag {
+			if MessageID != 0 {
+				bot.Send(tgBotApi.NewDeleteMessage(myID, MessageID))
+			}
+			ticker.Stop()
+			_, _ = bot.DeleteMessage(tgBotApi.DeleteMessageConfig{
+				ChatID:    myID,
+				MessageID: chatMsgID,
+			})
+			return
+		} else {
+			if MessageID != 0 {
+				select {
+				case _ = <-ticker.C:
+					MessageID = refreshPath(MessageID, myID, bot, ticker)
+					if MessageID == -1 {
+						return
+					}
+				}
+			} else {
+				MessageID = refreshPath(MessageID, myID, bot, ticker)
+				if MessageID == -1 {
+					return
+				}
+			}
+		}
+	}
+}
+
+func refreshPath(MessageID int, myID int64, bot *tgBotApi.BotAPI, ticker *time.Ticker) int {
+	res := formatTellSomething(aria2Rpc.TellActive())
+	log.Println(res, len(res))
+	text := ""
+	if res != "" {
+		text = res
+	} else {
+		text = locText("noActiveTask")
+	}
+	if MessageID == 0 {
+		msg := tgBotApi.NewMessage(myID, text)
+		msg.ParseMode = "Markdown"
+		res, err := bot.Send(msg)
+		dropErr(err)
+		if text == locText("noActiveTask") {
+			ticker.Stop()
+			return -1
+		} else {
+			return res.MessageID
+		}
+	} else {
+		if text == locText("noActiveTask") {
+			bot.Send(tgBotApi.NewDeleteMessage(myID, MessageID))
+			ticker.Stop()
+			return -1
+		} else {
+			newMsg := tgBotApi.NewEditMessageText(myID, MessageID, text)
+			newMsg.ParseMode = "Markdown"
+			bot.Send(newMsg)
+			return newMsg.MessageID
+		}
+
 	}
 }
 
@@ -642,13 +722,11 @@ func tgBot(BotKey string, wg *sync.WaitGroup) {
 
 				switch update.Message.Text {
 				case locText("nowDownload"):
-					res := formatTellSomething(aria2Rpc.TellActive())
-					//log.Println(res)
-					if res != "" {
-						msg.Text = res
-					} else {
-						msg.Text = locText("noActiveTask")
-					}
+					ticker := time.NewTicker(500 * time.Millisecond)
+					rand.Seed(time.Now().UnixNano())
+					a := rand.Intn(100000)
+					activeRefreshControl = a
+					go activeRefresh(update.Message.MessageID, bot, ticker, a)
 				case locText("nowWaiting"):
 					res := formatTellSomething(aria2Rpc.TellWaiting(0, info.MaxIndex))
 					if res != "" {
@@ -724,7 +802,7 @@ func tgBot(BotKey string, wg *sync.WaitGroup) {
 						}
 					}
 					FileControlChan <- "close"
-					go removeFiles(bot)
+					go removeFiles(update.Message.MessageID, bot)
 					FileControlChan <- "file"
 				case locText("moveDownloadFolderFiles"):
 					isFileChanClean := false
@@ -736,7 +814,7 @@ func tgBot(BotKey string, wg *sync.WaitGroup) {
 						}
 					}
 					FileControlChan <- "close"
-					go copyFiles(bot)
+					go copyFiles(update.Message.MessageID, bot)
 					FileControlChan <- "file"
 				case locText("uploadDownloadFolderFiles"):
 					isFileChanClean := false

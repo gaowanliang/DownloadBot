@@ -3,6 +3,8 @@ package rpc
 import (
 	"context"
 	"errors"
+	"fmt"
+	"github.com/gorilla/websocket"
 	"log"
 	"net"
 	"net/http"
@@ -10,8 +12,6 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
-
-	"github.com/gorilla/websocket"
 )
 
 type caller interface {
@@ -59,6 +59,13 @@ func (h *httpCaller) Close() (err error) {
 	return
 }
 
+var ariaDisconnectionChan = make(chan string, 2)
+
+func CreateAriaDisconnectionChan() *chan string {
+	log.Println("12346")
+	return &ariaDisconnectionChan
+}
+
 func (h *httpCaller) setNotifier(ctx context.Context, u url.URL, notifer Notifier) (err error) {
 	u.Scheme = "ws"
 	conn, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
@@ -75,6 +82,7 @@ func (h *httpCaller) setNotifier(ctx context.Context, u url.URL, notifer Notifie
 			if err := conn.WriteMessage(websocket.CloseMessage,
 				websocket.FormatCloseMessage(websocket.CloseNormalClosure, "")); err != nil {
 				log.Printf("sending websocket close message: %v", err)
+				ariaDisconnectionChan <- fmt.Sprint(err)
 			}
 			return
 		}
@@ -97,6 +105,7 @@ func (h *httpCaller) setNotifier(ctx context.Context, u url.URL, notifer Notifie
 				default:
 				}
 				log.Printf("conn.ReadJSON|err:%v", err.Error())
+				ariaDisconnectionChan <- fmt.Sprint(err.Error())
 				return
 			}
 			//log.Println(request)
@@ -174,6 +183,7 @@ func newWebsocketCaller(ctx context.Context, uri string, timeout time.Duration, 
 				default:
 				}
 				log.Printf("conn.ReadJSON|err:%v", err.Error())
+				ariaDisconnectionChan <- fmt.Sprint(err.Error())
 				return
 			}
 			//log.Printf("%+v 11111", resp)
@@ -213,6 +223,7 @@ func newWebsocketCaller(ctx context.Context, uri string, timeout time.Duration, 
 				if err := w.conn.WriteMessage(websocket.CloseMessage,
 					websocket.FormatCloseMessage(websocket.CloseNormalClosure, "")); err != nil {
 					log.Printf("sending websocket close message: %v", err)
+					ariaDisconnectionChan <- fmt.Sprint(err)
 				}
 				return
 			case req := <-sendChan:

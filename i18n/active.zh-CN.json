@@ -90,6 +90,7 @@
   "oneDriveOAuthFileCreateSuccess": "OneDrive OAuth2文件创建成功，保存至：",
   "noOneDriveInfo": "没有OneDrive上传配置，是否需要新建配置",
   "accountsAreCurrentlyLogin": "目前登录的账号如下：\n",
-  "selectAccount": "请选择要上传到的账户"
-
+  "selectAccount": "请选择要上传到的账户",
+  "ariaDisconnect": "监测到aria2断线，准备重连",
+  "reconnectionFailed": "第%d次重连失败，等待%d秒后重连"
 }

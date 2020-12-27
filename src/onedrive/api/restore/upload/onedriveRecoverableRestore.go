@@ -45,6 +45,7 @@ func (rs *RestoreService) recoverableUpload(userID string, bearerToken string, c
 				log.Panic(err)
 			}
 			buffer = make([]byte, lastChunkSize)
+			isLastChunk = true
 		}
 		filePartInBytes := &buffer
 		//4a. Get the bytes for the file based on the offset 根据偏移量获取文件的字节数

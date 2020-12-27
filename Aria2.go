@@ -17,6 +17,7 @@ var TMMessageChan = make(chan string, 3)
 
 // TMAllowDownloads is Allow Torrent/Magnet download List
 var TMAllowDownloads = make(map[string]int, 0)
+var ariaDisconnectionChan = *(rpc.CreateAriaDisconnectionChan())
 
 func testTMStop() {
 	for {
@@ -35,8 +36,31 @@ func testTMStop() {
 		}
 
 	}
-
 }
+func ariaDisconnectionMonitoring() {
+	timeout := 1
+	for {
+		res := <-ariaDisconnectionChan
+		log.Println(locText("ariaDisconnect"))
+		if res == "websocket: close 1006 (abnormal closure): unexpected EOF" {
+			aria2Rpc.Close()
+			var err error
+			aria2Rpc, err = rpc.New(context.Background(), info.Aria2Server, info.Aria2Key, time.Second*10, &Aria2Notifier{})
+			for err != nil {
+				log.Printf(locText("reconnectionFailed"), timeout, timeout)
+				time.Sleep(time.Second * time.Duration(timeout))
+				timeout++
+				aria2Rpc, err = rpc.New(context.Background(), info.Aria2Server, info.Aria2Key, time.Second*10, &Aria2Notifier{})
+			}
+			version, err := aria2Rpc.GetVersion()
+			dropErr(err)
+			log.Printf(locText("connectSuccess"), version.Version)
+			timeout = 1
+		}
+
+	}
+}
+
 func aria2Load() {
 	var err error
 	aria2Rpc, err = rpc.New(context.Background(), info.Aria2Server, info.Aria2Key, time.Second*10, &Aria2Notifier{})
@@ -46,11 +70,13 @@ func aria2Load() {
 	dropErr(err)
 	log.Printf(locText("connectSuccess"), version.Version)
 	go testTMStop()
+
+	go ariaDisconnectionMonitoring()
 }
 
 func formatTellSomething(info []rpc.StatusInfo, err error) string {
 	dropErr(err)
-	log.Printf("%+v\n\n", info)
+	//log.Printf("%+v\n\n", info)
 	res := ""
 	var statusFlag = map[string]string{"active": locText("active"), "paused": locText("paused"), "complete": locText("complete"), "removed": locText("removed")}
 	for index, Files := range info {
