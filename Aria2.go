@@ -57,7 +57,6 @@ func ariaDisconnectionMonitoring() {
 			log.Printf(locText("connectSuccess"), version.Version)
 			timeout = 1
 		}
-
 	}
 }
 

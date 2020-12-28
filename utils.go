@@ -218,7 +218,7 @@ func CopyFiles(srcFiles []string) {
 	newMsg := sendAutoUpdateMessage()
 	for _, srcPath := range srcFiles {
 		if srcPath != info.DownloadFolder && srcPath != info.DownloadFolder+"/" {
-			newMsg(fmt.Sprintf(locText(""), srcPath, destPath+path.Base(srcPath)))
+			newMsg(fmt.Sprintf(locText("copyingTo"), srcPath, destPath+path.Base(srcPath)))
 			//log.Println(srcPath)
 			file1, err := os.Open(srcPath)
 			dropErr(err)
