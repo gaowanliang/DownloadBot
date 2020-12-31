@@ -7,7 +7,8 @@
 ## Project significance
 This project is mainly to use small hard disk server for offline downloading, for large BitTorrent files to be downloaded in sections according to the size of the hard disk, each time downloading a part, then uploading the network disk, delete and then download the other parts, until all the files are downloaded.
 
-At the same time, communication via the bot protocol facilitates use on machines that cannot intranet penetration, and simplifies the usual use of download programs for added convenience.
+At the same time, communication via the bot protocol facilitates use on machines that cannot intranet penetration, and simplifies the usual use of download programs for added convenience.For links, sending a message directly to the Bot will directly identify and download them. It can actually delete files from the download folder, which is not possible with web panels such as AriaNG, and is very convenient as a tool for managing downloads and notifying timely completion of downloads. You can move files, and for users who mount their hard drives via rclone you can copy and paste directly through this program, without having to open an ssh connection to the VPS for cp operations, which is also very convenient.
+
 
 ## Functions realized
 
@@ -16,7 +17,7 @@ At the same time, communication via the bot protocol facilitates use on machines
 #### Download method
 - [x] Aria2 control
   - [x] Persistent monitoring
-  - [x] Disconnect and reconnect
+  - [x] Automatic reconnection after disconnection
 - [ ] Multi download server control at the same time
   - [ ] WebSocket communication between multiple servers via a server with a public IP
   - [ ] Allow users to create public WebSocket relays for users who are not comfortable establishing WebSocket communication

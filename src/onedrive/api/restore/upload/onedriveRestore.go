@@ -35,15 +35,15 @@ type RestoreService struct {
 //@bearerToken will be extracted as sent from the restore input xml
 //@filePath will be extracted from the file hierarchy the needs to be restored
 //@fileInfo it is the file info struct that contains the actual file reference and the size_type
-func (rs *RestoreService) SimpleUploadToOriginalLoc(userId string, bearerToken string, conflictOption string, filePath string, fileInfo fileutil.FileInfo, sendMsg func(text string), locText func(text string) string) (interface{}, error) {
+func (rs *RestoreService) SimpleUploadToOriginalLoc(userId string, bearerToken string, conflictOption string, filePath string, fileInfo fileutil.FileInfo, sendMsg func(text string), locText func(text string) string, username string) (interface{}, error) {
 	if fileInfo.SizeType == fileutil.SizeTypeLarge {
 		//For Large file type use resemble onedrive upload API
 		//log.Printf("Processing Large File: %s", filePath)
-		sendMsg("`" + filePath + "`" + locText("oneDriveBigFile"))
-		return rs.recoverableUpload(userId, bearerToken, conflictOption, filePath, fileInfo, sendMsg)
+		sendMsg(fmt.Sprintf(locText("oneDriveBigFile"), filePath, username))
+		return rs.recoverableUpload(userId, bearerToken, conflictOption, filePath, fileInfo, sendMsg, locText, username)
 	} else {
 		//log.Printf("Processing Small File: %s", filePath)
-		sendMsg("`" + filePath + "`" + locText("oneDriveSmallFile"))
+		sendMsg(fmt.Sprintf(locText("oneDriveSmallFile"), filePath, username))
 		uploadPath := fmt.Sprintf(simpleUploadPath, userId, filePath)
 		req, err := rs.NewRequest("PUT", uploadPath, getSimpleUploadHeader(bearerToken), fileInfo.FileData)
 		if err != nil {
@@ -83,10 +83,10 @@ func (rs *RestoreService) SimpleUploadToOriginalLoc(userId string, bearerToken s
 //@userId will be extracted as sent from the restore input xml
 //@filePath will be extracted from the file hierarchy the needs to be restored
 //@fileInfo it is the file info struct that contains the actual file reference and the size_type
-func (rs *RestoreService) SimpleUploadToAlternateLoc(altUserId string, bearerToken string, conflictOption string, filePath string, fileInfo fileutil.FileInfo, sendMsg func(text string), locText func(text string) string) (interface{}, error) {
+func (rs *RestoreService) SimpleUploadToAlternateLoc(altUserId string, bearerToken string, conflictOption string, filePath string, fileInfo fileutil.FileInfo, sendMsg func(text string), locText func(text string) string, username string) (interface{}, error) {
 	if fileInfo.SizeType == fileutil.SizeTypeLarge {
 		//For Large file type use resemble onedrive upload API
-		return rs.recoverableUpload(altUserId, bearerToken, conflictOption, filePath, fileInfo, sendMsg)
+		return rs.recoverableUpload(altUserId, bearerToken, conflictOption, filePath, fileInfo, sendMsg, locText, username)
 	} else {
 
 		uploadPath := fmt.Sprintf(simpleUploadPath, altUserId, filePath)

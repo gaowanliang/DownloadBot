@@ -8,6 +8,7 @@ import (
 	"math/rand"
 	"net/http"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -436,6 +437,7 @@ func uploadFiles(chatMsgID int, chatMsg string, bot *tgBotApi.BotAPI) {
 								Keyboards = append(Keyboards, inlineKeyBoardRow)
 							}
 							inlineKeyBoardRow = make([]tgBotApi.InlineKeyboardButton, 0)
+							inlineKeyBoardRow = append(inlineKeyBoardRow, tgBotApi.NewInlineKeyboardButtonData(locText("createNewAcc"), "onedrive~new"+":9"))
 							inlineKeyBoardRow = append(inlineKeyBoardRow, tgBotApi.NewInlineKeyboardButtonData(locText("cancel"), "upload~cancel"+":9"))
 							Keyboards = append(Keyboards, inlineKeyBoardRow)
 						}
@@ -835,17 +837,25 @@ func tgBot(BotKey string, wg *sync.WaitGroup) {
 							err = os.MkdirAll("info/onedrive", os.ModePerm)
 							dropErr(err)
 						}
-						isFileChanClean := false
-						for !isFileChanClean {
-							select {
-							case _ = <-FileControlChan:
-							default:
-								isFileChanClean = true
+						var re = regexp.MustCompile(`(?m)code=(.*?)&`)
+						judgeLegal:=re.FindStringSubmatch(update.Message.Text)
+						//log.Println(judgeLegal)
+						if len(judgeLegal)>=2{
+							isFileChanClean := false
+							for !isFileChanClean {
+								select {
+								case _ = <-FileControlChan:
+								default:
+									isFileChanClean = true
+								}
 							}
+							FileControlChan <- "close"
+							go uploadFiles(update.Message.MessageID, update.Message.Text, bot)
+							FileControlChan <- "onedrive~create"
+						}else{
+							msg.Text="您输入的OneDrive OAuth2链接有误，请重新输入"
 						}
-						FileControlChan <- "close"
-						go uploadFiles(update.Message.MessageID, update.Message.Text, bot)
-						FileControlChan <- "onedrive~create"
+
 					} else if !download(update.Message.Text) {
 						msg.Text = locText("unknownLink")
 					}

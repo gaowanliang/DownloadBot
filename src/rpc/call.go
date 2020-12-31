@@ -62,7 +62,7 @@ func (h *httpCaller) Close() (err error) {
 var ariaDisconnectionChan = make(chan string, 2)
 
 func CreateAriaDisconnectionChan() *chan string {
-	log.Println("12346")
+	//log.Println("12346")
 	return &ariaDisconnectionChan
 }
 

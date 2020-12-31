@@ -84,13 +84,16 @@
     "no": "否",
     "startUploadOneDrive": "開始上傳至OneDrive",
     "uploadOneDriveComplete": "DownloadFolder上傳至OneDrive完成",
-    "oneDriveBigFile": "開始上傳至OneDrive\n檔超過4MB，進入大檔通道",
-    "oneDriveSmallFile": "開始上傳至OneDrive\n檔小於4MB，進入小檔通道，上傳中......",
+    "oneDriveBigFile": "文件: `%s` 開始上傳至OneDrive\n帳戶:`%s`\n檔超過4MB，進入大檔通道",
+    "oneDriveSmallFile": "文件: `%s` 開始上傳至OneDrive\n帳戶:`%s`\n檔小於4MB，進入小檔通道，上傳中......",
     "oneDriveGetAccess": "請打開下面的網址，登錄OneDrive帳戶後，將跳轉後的網址複製後，發送給本Bot\n注意：本程式不會涉及您的隱私資訊，請放心使用",
     "oneDriveOAuthFileCreateSuccess": "OneDrive OAuth2檔創建成功，保存至：",
     "noOneDriveInfo": "沒有OneDrive上傳配置，是否需要新建配置",
     "accountsAreCurrentlyLogin": "目前登錄的帳號如下：\n",
     "selectAccount": "請選擇要上傳到的帳戶",
     "ariaDisconnect": "監測到aria2斷線，準備重連",
-    "reconnectionFailed": "第%d次重連失敗，等待%d秒後重連"
+    "reconnectionFailed": "第%d次重連失敗，等待%d秒後重連",
+    "oneDriveUploadTip1": "正在向OneDrive帳戶 `%s` 上傳 `%s` *[%d/%d]*  速度:%s/s 耗時: %d s",
+    "oneDriveUploadTip2": "正在向OneDrive帳戶 `%s` 上傳 `%s` *[%d/%d]*  速度:---- 耗時: %d s",
+    "createNewAcc": "新建帳戶"
 }

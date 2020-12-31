@@ -16,7 +16,7 @@ const (
 	uploadURLKey      = "uploadUrl"
 )
 
-func (rs *RestoreService) recoverableUpload(userID string, bearerToken string, conflictOption string, filePath string, fileInfo fileutil.FileInfo, sendMsg func(text string)) ([]map[string]interface{}, error) {
+func (rs *RestoreService) recoverableUpload(userID string, bearerToken string, conflictOption string, filePath string, fileInfo fileutil.FileInfo, sendMsg func(text string), locText func(text string) string, username string) ([]map[string]interface{}, error) {
 	//1. Get recoverable upload session for the current file path 获取当前文件路径的可压缩上载会话
 	uploadSessionData, err := rs.getUploadSession(userID, bearerToken, conflictOption, filePath)
 	if err != nil {
@@ -38,6 +38,7 @@ func (rs *RestoreService) recoverableUpload(userID string, bearerToken string, c
 	var isLastChunk bool
 	timeUnix := time.Now().UnixNano()
 	var buffer = make([]byte, fileutil.GetDefaultChunkSize())
+	startTime := time.Now().Unix()
 	for i, sOffset := range startOffsetLst {
 		if i == lastChunkIndex {
 			lastChunkSize, err := fileutil.GetLatsChunkSizeInBytes(filePath)
@@ -54,9 +55,9 @@ func (rs *RestoreService) recoverableUpload(userID string, bearerToken string, c
 			return nil, err
 		}
 		if i != 0 {
-			sendMsg(fmt.Sprintf("`%s` `[%d/%d]`  Speed:%s/s", filePath, i, len(startOffsetLst), byte2Readable(float64(fileutil.GetDefaultChunkSize())/float64(time.Now().UnixNano()-timeUnix)*float64(1000000000))))
-		}else{
-			sendMsg(fmt.Sprintf("`%s` `[%d/%d]`  Speed:---", filePath, i, len(startOffsetLst)))
+			sendMsg(fmt.Sprintf(locText("oneDriveUploadTip1"), username, filePath, i, len(startOffsetLst), byte2Readable(float64(fileutil.GetDefaultChunkSize())/float64(time.Now().UnixNano()-timeUnix)*float64(1000000000)), time.Now().Unix()-startTime))
+		} else {
+			sendMsg(fmt.Sprintf(locText("oneDriveUploadTip2"), username, filePath, i, len(startOffsetLst), time.Now().Unix()-startTime))
 		}
 
 		timeUnix = time.Now().UnixNano()
