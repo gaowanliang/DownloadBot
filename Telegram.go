@@ -395,7 +395,7 @@ func uploadFiles(chatMsgID int, chatMsg string, bot *tgBotApi.BotAPI) {
 					uploadDFToOneDrive("./info/onedrive/" + b[1])
 				default:
 					switch b[1] {
-					case "1":
+					case "1": // 选择OneDrive
 						_, err := os.Stat("./info/onedrive")
 						if err != nil {
 							err = os.MkdirAll("./info/onedrive", os.ModePerm)
@@ -427,6 +427,53 @@ func uploadFiles(chatMsgID int, chatMsg string, bot *tgBotApi.BotAPI) {
 							index = 1
 							for _, name := range files {
 								inlineKeyBoardRow = append(inlineKeyBoardRow, tgBotApi.NewInlineKeyboardButtonData(fmt.Sprint(index), "odInfo~"+name+":9"))
+								if index%7 == 0 {
+									Keyboards = append(Keyboards, inlineKeyBoardRow)
+									inlineKeyBoardRow = make([]tgBotApi.InlineKeyboardButton, 0)
+								}
+								index++
+							}
+							if len(inlineKeyBoardRow) != 0 {
+								Keyboards = append(Keyboards, inlineKeyBoardRow)
+							}
+							inlineKeyBoardRow = make([]tgBotApi.InlineKeyboardButton, 0)
+							inlineKeyBoardRow = append(inlineKeyBoardRow, tgBotApi.NewInlineKeyboardButtonData(locText("createNewAcc"), "onedrive~new"+":9"))
+							inlineKeyBoardRow = append(inlineKeyBoardRow, tgBotApi.NewInlineKeyboardButtonData(locText("cancel"), "upload~cancel"+":9"))
+							Keyboards = append(Keyboards, inlineKeyBoardRow)
+						}
+						text += locText("selectAccount")
+					case "2": // 选择Google drive
+						_, err := os.Stat("./info/googleDrive")
+						if err != nil {
+							err = os.MkdirAll("./info/googleDrive", os.ModePerm)
+							dropErr(err)
+						}
+						dir, _ := ioutil.ReadDir("./info/googleDrive")
+						if len(dir) == 0 {
+							text = locText("noOneDriveInfo")
+							inlineKeyBoardRow := make([]tgBotApi.InlineKeyboardButton, 0)
+							inlineKeyBoardRow = append(inlineKeyBoardRow, tgBotApi.NewInlineKeyboardButtonData(locText("yes"), "onedrive~new"+":9"))
+							inlineKeyBoardRow = append(inlineKeyBoardRow, tgBotApi.NewInlineKeyboardButtonData(locText("no"), "onedrive~cancel"+":9"))
+							Keyboards = append(Keyboards, inlineKeyBoardRow)
+						} else {
+							text = locText("accountsAreCurrentlyLogin")
+							files := make([]string, 0)
+							rd, err := ioutil.ReadDir("./info/googleDrive/")
+							dropErr(err)
+							index := 1
+							for _, fi := range rd {
+								if !fi.IsDir() {
+									if strings.HasSuffix(strings.ToLower(fi.Name()), ".json") {
+										files = append(files, fi.Name())
+										text += fmt.Sprintf("%d.%s\n", index, fi.Name())
+										index++
+									}
+								}
+							}
+							inlineKeyBoardRow := make([]tgBotApi.InlineKeyboardButton, 0)
+							index = 1
+							for _, name := range files {
+								inlineKeyBoardRow = append(inlineKeyBoardRow, tgBotApi.NewInlineKeyboardButtonData(fmt.Sprint(index), "gdInfo~"+name+":9"))
 								if index%7 == 0 {
 									Keyboards = append(Keyboards, inlineKeyBoardRow)
 									inlineKeyBoardRow = make([]tgBotApi.InlineKeyboardButton, 0)
@@ -838,9 +885,9 @@ func tgBot(BotKey string, wg *sync.WaitGroup) {
 							dropErr(err)
 						}
 						var re = regexp.MustCompile(`(?m)code=(.*?)&`)
-						judgeLegal:=re.FindStringSubmatch(update.Message.Text)
+						judgeLegal := re.FindStringSubmatch(update.Message.Text)
 						//log.Println(judgeLegal)
-						if len(judgeLegal)>=2{
+						if len(judgeLegal) >= 2 {
 							isFileChanClean := false
 							for !isFileChanClean {
 								select {
@@ -852,8 +899,8 @@ func tgBot(BotKey string, wg *sync.WaitGroup) {
 							FileControlChan <- "close"
 							go uploadFiles(update.Message.MessageID, update.Message.Text, bot)
 							FileControlChan <- "onedrive~create"
-						}else{
-							msg.Text="您输入的OneDrive OAuth2链接有误，请重新输入"
+						} else {
+							msg.Text = "您输入的OneDrive OAuth2链接有误，请重新输入"
 						}
 
 					} else if !download(update.Message.Text) {
