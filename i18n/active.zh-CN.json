@@ -33,6 +33,7 @@
   "queryInformationFormat1": "*文件名:* `%s`\n`%s`\n*已下载:* %s *共* %s\n*线程数:* %s\n*GID:* `%s`",
   "queryInformationFormat2": "*文件名:* `%s`\n*状态:* %s\n`%s`\n*已下载:* %s *共* %s\n*线程数:* %s\n*GID:* `%s`",
   "queryInformationFormat3": "*文件名:* `%s`\n`%s`\n*已下载:* %s *共* %s\n*速度:* %s/s\n*剩余时间:* %s\n*线程数:* %s\n*GID:* `%s`",
+  "queryInformationBTFormat3": "*文件名:* `%s`\n`%s`\n*已下载:* %s *共* %s\n*速度:* %s/s\n*剩余时间:* %s\n*做种者:* %s *&* *下载者:* %s\n*GID:* `%s`",
   "ResumeAll": "恢复全部",
   "StopAll": "停止全部",
   "downloadFolderClear": "删除下载文件夹中所有文件",

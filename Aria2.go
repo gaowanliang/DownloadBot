@@ -92,6 +92,8 @@ func formatTellSomething(info []rpc.StatusInfo, err error) string {
 			m["CompletedLength"] = byte2Readable(completedLength)
 			m["Progress"] = printProgressBar(completedLength * 100.0 / bytes)
 			m["Threads"] = "-"
+			m["Seeders"] = Files.NumSeeders
+			m["Peers"] = Files.Connections
 			downloadSpeed, err := strconv.ParseFloat(Files.DownloadSpeed, 64)
 			dropErr(err)
 			m["Speed"] = byte2Readable(downloadSpeed)
@@ -123,7 +125,7 @@ func formatTellSomething(info []rpc.StatusInfo, err error) string {
 				res += fmt.Sprintf(locText("queryInformationFormat2"), m["Name"], m["Status"], m["Progress"], m["CompletedLength"], m["Size"], m["Threads"], m["GID"])
 			} else {
 				//res += fmt.Sprintf(locText("queryInformationFormat3"), m["GID"], m["Name"], m["Progress"], m["Size"], m["Speed"])
-				res += fmt.Sprintf(locText("queryInformationFormat3"), m["Name"], m["Progress"], m["CompletedLength"], m["Size"], m["Speed"], m["remainingTime"], m["Threads"], m["GID"])
+				res += fmt.Sprintf(locText("queryInformationBTFormat3"), m["Name"], m["Progress"], m["CompletedLength"], m["Size"], m["Speed"], m["remainingTime"], m["Seeders"], m["Peers"], m["GID"])
 			}
 		} else {
 			for _, File := range Files.Files {

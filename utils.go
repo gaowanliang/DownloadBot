@@ -82,7 +82,7 @@ func locLan(locLanguage string) {
 		defer resp.Body.Close()
 		data, err := ioutil.ReadAll(resp.Body)
 		dropErr(err)
-		ioutil.WriteFile(fmt.Sprintf("i18n/active.%s.json", locLanguage), data, 0644)
+		ioutil.WriteFile(fmt.Sprintf("i18n/active.%s.json", locLanguage), data, 0666)
 	} else {
 		url := "https://cdn.jsdelivr.net/gh/gaowanliang/DownloadBot@latest/i18n/"
 		j := pageDownload(url)
