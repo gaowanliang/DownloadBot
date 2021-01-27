@@ -1,5 +1,11 @@
 # DownloadBot
 
+[![Go Version](https://img.shields.io/github/go-mod/go-version/gaowanliang/DownloadBot.svg?style=flat-square&label=Go&color=00ADD8)](https://github.com/gaowanliang/DownloadBot/blob/master/go.mod)
+[![Release Version](https://img.shields.io/github/v/release/gaowanliang/DownloadBot.svg?style=flat-square&label=Release&color=1784ff)](https://github.com/gaowanliang/DownloadBot/releases/latest)
+[![GitHub license](https://img.shields.io/github/license/gaowanliang/DownloadBot.svg?style=flat-square&label=License&color=2ecc71)](https://github.com/gaowanliang/DownloadBot/blob/master/LICENSE)
+[![GitHub Star](https://img.shields.io/github/stars/gaowanliang/DownloadBot.svg?style=flat-square&label=Star&color=f39c12)](https://github.com/gaowanliang/DownloadBot/stargazers)
+[![GitHub Fork](https://img.shields.io/github/forks/gaowanliang/DownloadBot.svg?style=flat-square&label=Fork&color=8e44ad)](https://github.com/gaowanliang/DownloadBot/network/members)
+
 (目前) 🤖 一個可以控制你的Aria2伺服器、控制伺服器檔，同時可以上傳到OneDrive的Telegram Bot。
 
 ## 意義
@@ -53,7 +59,7 @@
 - [x] 上傳文件
     - [x] 下載完成後，向 OneDrive 上傳檔
       - [ ] 中斷點續傳
-    - [ ] 下載完成後，向 Google Drive 上傳檔
+    - [x] 下載完成後，向 Google Drive 上傳檔
     - [ ] 下載完成後，向 Mega 上傳檔
     - [ ] 下載完成後，向 天翼網盤 上傳文件
     - [ ] (當使用Telegram進行通信時)下載完成後，向 Telegram 上傳檔

@@ -33,6 +33,7 @@
     "queryInformationFormat1": "*檔案名:* `%s`\n`%s`\n*已下載:* %s *共* %s\n*執行緒數:* %s\n*GID:* `%s`",
     "queryInformationFormat2": "*檔案名:* `%s`\n*狀態:* %s\n`%s`\n*已下載:* %s *共* %s\n*執行緒數:* %s\n*GID:* `%s`",
     "queryInformationFormat3": "*檔案名:* `%s`\n`%s`\n*已下載:* %s *共* %s\n*速度:* %s/s\n*剩餘時間:* %s\n*執行緒數:* %s\n*GID:* `%s`",
+    "queryInformationBTFormat3": "*檔案名:* `%s`\n`%s`\n*已下載:* %s *共* %s\n*速度:* %s/s\n*剩餘時間:* %s\n*做種者:* %s *&* *下載者:* %s\n*GID:* `%s`",
     "ResumeAll": "恢復全部",
     "StopAll": "停止全部",
     "downloadFolderClear": "刪除下載檔案夾中所有檔",
@@ -93,7 +94,14 @@
     "selectAccount": "請選擇要上傳到的帳戶",
     "ariaDisconnect": "監測到aria2斷線，準備重連",
     "reconnectionFailed": "第%d次重連失敗，等待%d秒後重連",
-    "oneDriveUploadTip1": "正在向OneDrive帳戶 `%s` 上傳 `%s` *[%d/%d]*  速度:%s/s 耗時: %d s",
-    "oneDriveUploadTip2": "正在向OneDrive帳戶 `%s` 上傳 `%s` *[%d/%d]*  速度:---- 耗時: %d s",
-    "createNewAcc": "新建帳戶"
+    "oneDriveUploadTip1": "正在向OneDrive帳戶 `%s` 上傳 `%s` *[%d/%d]*  速度:%s/s 已耗時: %d s",
+    "oneDriveUploadTip2": "正在向OneDrive帳戶 `%s` 上傳 `%s` *[%d/%d]*  速度:---- 已耗時: %d s",
+    "createNewAcc": "新建帳戶",
+    "googleDriveGetAccess": "請打開下面的網址，登錄google帳戶後，根據頁面的提示複製代碼，發送給本Bot\n注意：本程式不會涉及您的隱私資訊，請放心使用",
+    "noGoogleDriveInfo": "沒有Google Drive上傳配置，是否需要新建配置",
+    "errorOneDriveAuthURL": "您輸入的OneDrive OAuth2連結有誤，請重新輸入",
+    "googleDriveOAuthFileCreateSuccess": "Google Drive OAuth2檔創建成功，保存至：",
+    "startUploadGoogleDrive": "開始上傳至Google Drive",
+    "googleDriveUploadTip": "正在向Google Drive帳戶 `%s` 上傳 `%s` 已耗時: %d s",
+    "uploadGoogleDriveComplete": "DownloadFolder上傳至Google Drive完成"
 }

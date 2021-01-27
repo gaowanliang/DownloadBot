@@ -393,27 +393,26 @@ func uploadFiles(chatMsgID int, chatMsg string, bot *tgBotApi.BotAPI) {
 						mail := getNewOneDriveInfo(chatMsg)
 						text = locText("oneDriveOAuthFileCreateSuccess") + mail
 					}
-				case "googledDrive":
+				case "googleDrive":
 					switch b[1] {
 					case "new":
 						text = fmt.Sprintf(
-							`%s https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=ad5e65fd-856d-4356-aefc-537a9700c137&response_type=code&redirect_uri=http://localhost/onedrive-login&response_mode=query&scope=offline_access%%20User.Read%%20Files.ReadWrite.All`,
-							locText("oneDriveGetAccess"),
+							`%s %s`,
+							locText("googleDriveGetAccess"), getGoogleDriveAuthCodeURL(),
 						)
 					case "create":
-						mail := getNewOneDriveInfo(chatMsg)
-						text = locText("oneDriveOAuthFileCreateSuccess") + mail
+						mail := getNewGoogleDriveInfo(chatMsg)
+						text = locText("googleDriveOAuthFileCreateSuccess") + mail
 					}
 				case "odInfo":
 					uploadDFToOneDrive("./info/onedrive/" + b[1])
+				case "gdInfo":
+					uploadDFToGoogleDrive("./info/googleDrive/" + b[1])
 				default:
 					switch b[1] {
 					case "1": // 选择OneDrive
-						_, err := os.Stat("./info/onedrive")
-						if err != nil {
-							err = os.MkdirAll("./info/onedrive", os.ModePerm)
-							dropErr(err)
-						}
+						createDriveInfoFolder("./info/onedrive")
+
 						dir, _ := ioutil.ReadDir("./info/onedrive")
 						if len(dir) == 0 {
 							text = locText("noOneDriveInfo")
@@ -423,19 +422,9 @@ func uploadFiles(chatMsgID int, chatMsg string, bot *tgBotApi.BotAPI) {
 							Keyboards = append(Keyboards, inlineKeyBoardRow)
 						} else {
 							text = locText("accountsAreCurrentlyLogin")
-							files := make([]string, 0)
-							rd, err := ioutil.ReadDir("./info/onedrive/")
-							dropErr(err)
-							index := 1
-							for _, fi := range rd {
-								if !fi.IsDir() {
-									if strings.HasSuffix(strings.ToLower(fi.Name()), ".json") {
-										files = append(files, fi.Name())
-										text += fmt.Sprintf("%d.%s\n", index, fi.Name())
-										index++
-									}
-								}
-							}
+							files, _text, index := getAuthInfoJson("./info/onedrive/")
+							text += _text
+
 							inlineKeyBoardRow := make([]tgBotApi.InlineKeyboardButton, 0)
 							index = 1
 							for _, name := range files {
@@ -453,36 +442,22 @@ func uploadFiles(chatMsgID int, chatMsg string, bot *tgBotApi.BotAPI) {
 							inlineKeyBoardRow = append(inlineKeyBoardRow, tgBotApi.NewInlineKeyboardButtonData(locText("createNewAcc"), "onedrive~new"+":9"))
 							inlineKeyBoardRow = append(inlineKeyBoardRow, tgBotApi.NewInlineKeyboardButtonData(locText("cancel"), "upload~cancel"+":9"))
 							Keyboards = append(Keyboards, inlineKeyBoardRow)
+							text += locText("selectAccount")
 						}
-						text += locText("selectAccount")
+
 					case "2": // 选择Google drive
-						_, err := os.Stat("./info/googleDrive")
-						if err != nil {
-							err = os.MkdirAll("./info/googleDrive", os.ModePerm)
-							dropErr(err)
-						}
+						createDriveInfoFolder("./info/googleDrive")
 						dir, _ := ioutil.ReadDir("./info/googleDrive")
 						if len(dir) == 0 {
-							text = "没有Google Drive上传配置，是否需要新建配置"
+							text = locText("noGoogleDriveInfo")
 							inlineKeyBoardRow := make([]tgBotApi.InlineKeyboardButton, 0)
 							inlineKeyBoardRow = append(inlineKeyBoardRow, tgBotApi.NewInlineKeyboardButtonData(locText("yes"), "googleDrive~new"+":9"))
 							inlineKeyBoardRow = append(inlineKeyBoardRow, tgBotApi.NewInlineKeyboardButtonData(locText("no"), "googleDrive~cancel"+":9"))
 							Keyboards = append(Keyboards, inlineKeyBoardRow)
 						} else {
 							text = locText("accountsAreCurrentlyLogin")
-							files := make([]string, 0)
-							rd, err := ioutil.ReadDir("./info/googleDrive/")
-							dropErr(err)
-							index := 1
-							for _, fi := range rd {
-								if !fi.IsDir() {
-									if strings.HasSuffix(strings.ToLower(fi.Name()), ".json") {
-										files = append(files, fi.Name())
-										text += fmt.Sprintf("%d.%s\n", index, fi.Name())
-										index++
-									}
-								}
-							}
+							files, _text, index := getAuthInfoJson("./info/googleDrive/")
+							text += _text
 							inlineKeyBoardRow := make([]tgBotApi.InlineKeyboardButton, 0)
 							index = 1
 							for _, name := range files {
@@ -497,11 +472,11 @@ func uploadFiles(chatMsgID int, chatMsg string, bot *tgBotApi.BotAPI) {
 								Keyboards = append(Keyboards, inlineKeyBoardRow)
 							}
 							inlineKeyBoardRow = make([]tgBotApi.InlineKeyboardButton, 0)
-							inlineKeyBoardRow = append(inlineKeyBoardRow, tgBotApi.NewInlineKeyboardButtonData(locText("createNewAcc"), "onedrive~new"+":9"))
+							inlineKeyBoardRow = append(inlineKeyBoardRow, tgBotApi.NewInlineKeyboardButtonData(locText("createNewAcc"), "googleDrive~new"+":9"))
 							inlineKeyBoardRow = append(inlineKeyBoardRow, tgBotApi.NewInlineKeyboardButtonData(locText("cancel"), "upload~cancel"+":9"))
 							Keyboards = append(Keyboards, inlineKeyBoardRow)
+							text += locText("selectAccount")
 						}
-						text += locText("selectAccount")
 					case "Upload":
 						//CopyFiles(copyFiles)
 						bot.Send(tgBotApi.NewDeleteMessage(myID, MessageID))
@@ -892,11 +867,8 @@ func tgBot(BotKey string, wg *sync.WaitGroup) {
 					FileControlChan <- "upload"
 				default:
 					if strings.Contains(update.Message.Text, "localhost/onedrive-login") {
-						_, err := os.Stat("info/onedrive")
-						if err != nil {
-							err = os.MkdirAll("info/onedrive", os.ModePerm)
-							dropErr(err)
-						}
+						//如果是OneDrive auth code 链接
+						createDriveInfoFolder("./info/onedrive")
 						var re = regexp.MustCompile(`(?m)code=(.*?)&`)
 						judgeLegal := re.FindStringSubmatch(update.Message.Text)
 						//log.Println(judgeLegal)
@@ -913,9 +885,15 @@ func tgBot(BotKey string, wg *sync.WaitGroup) {
 							go uploadFiles(update.Message.MessageID, update.Message.Text, bot)
 							FileControlChan <- "onedrive~create"
 						} else {
-							msg.Text = "您输入的OneDrive OAuth2链接有误，请重新输入"
+							msg.Text = locText("errorOneDriveAuthURL")
 						}
 
+					} else if strings.Contains(update.Message.Text, "4/1AY") && len(update.Message.Text) == 62 {
+						//如果是Google Drive auth code
+						createDriveInfoFolder("./info/googleDrive")
+						FileControlChan <- "close"
+						go uploadFiles(update.Message.MessageID, update.Message.Text, bot)
+						FileControlChan <- "googleDrive~create"
 					} else if !download(update.Message.Text) {
 						msg.Text = locText("unknownLink")
 					}

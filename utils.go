@@ -12,7 +12,6 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"onedrive"
 	"os"
 	"path"
 	"path/filepath"
@@ -514,16 +513,4 @@ func toInt64(text string) int64 {
 	return i
 }
 
-func getNewOneDriveInfo(url string) string {
-	return onedrive.ApplyForNewPass(url)
-}
 
-func uploadDFToOneDrive(infoPath string) {
-	FileControlChan <- "close"
-	//log.Println(strings.ReplaceAll(info.DownloadFolder, "\\", "/"))
-	go onedrive.Upload(strings.ReplaceAll(infoPath, "\\", "/"), strings.ReplaceAll(info.DownloadFolder, "\\", "/"), 3, func() func(text string) {
-		return sendAutoUpdateMessage()
-	}, func(text string) string {
-		return locText(text)
-	})
-}
