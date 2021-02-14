@@ -642,7 +642,7 @@ func createFilesInlineKeyBoardRow(filesInfos ...FilesInlineKeyboards) ([][]tgBot
 	for _, filesInfo := range filesInfos {
 		for _, GidAndName := range filesInfo.GidAndName {
 
-			text += fmt.Sprintf("%d: %s\n", index, GidAndName["Name"])
+			text += fmt.Sprintf("%d: `%s`\n", index, GidAndName["Name"])
 			inlineKeyBoardRow = append(inlineKeyBoardRow, tgBotApi.NewInlineKeyboardButtonData(fmt.Sprint(index), GidAndName["GID"]+":"+filesInfo.Data))
 			if index%7 == 0 {
 				Keyboards = append(Keyboards, inlineKeyBoardRow)
