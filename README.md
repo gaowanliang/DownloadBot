@@ -10,6 +10,11 @@
 
 
 (Currently) 🤖 A Telegram Bot that can control your Aria2 server, control server files and also upload to OneDrive.
+
+## 【NOTE】
+Since the author I need to prepare for my graduate exams at the moment, the development progress will be appropriately stalled, I think it is a good idea for the program, so I will keep developing it.
+Questions or suggestions are very welcome, and although I can't focus on development on my end, I still log in to GitHub often to check out everyone's suggestions and pr.😀
+
 ## Project significance
 This project is mainly to use small hard disk server for offline downloading, for large BitTorrent files to be downloaded in sections according to the size of the hard disk, each time downloading a part, then uploading the network disk, delete and then download the other parts, until all the files are downloaded.
 
