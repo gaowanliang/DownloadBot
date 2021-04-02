@@ -103,5 +103,6 @@
     "googleDriveOAuthFileCreateSuccess": "Google Drive OAuth2 file created successfully, save to:",
     "startUploadGoogleDrive": "Start uploading to Google Drive",
     "googleDriveUploadTip": "Google Drive account `%s` \n Uploading `%s` Time: %d s",
-    "uploadGoogleDriveComplete": "DownloadFolder upload to Google Drive complete"
+    "uploadGoogleDriveComplete": "DownloadFolder upload to Google Drive complete",
+    "oneDriveUploadFailAndRetry": "OneDrive account `%s` \n There was a connection problem when uploading `%s`. Retrying. It's the %d times retrying"
 }

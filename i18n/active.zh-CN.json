@@ -103,5 +103,6 @@
   "googleDriveOAuthFileCreateSuccess": "Google Drive OAuth2文件创建成功，保存至：",
   "startUploadGoogleDrive": "开始上传至Google Drive",
   "googleDriveUploadTip": "正在向Google Drive账户 `%s` 上传 `%s` 已耗时: %d s",
-  "uploadGoogleDriveComplete": "DownloadFolder上传至Google Drive完成"
+  "uploadGoogleDriveComplete": "DownloadFolder上传至Google Drive完成",
+  "oneDriveUploadFailAndRetry": "向OneDrive账户 `%s` 上传 `%s` 时出现连接问题，正在重试，当前为第%d次重试"
 }
