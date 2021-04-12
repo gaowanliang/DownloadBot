@@ -130,7 +130,7 @@ This script that we're going to need to use is in Chinese.
 Will be saved in user's Downloads folder
 ### Download Script
 ```
-wget -N git.io/aria2.sh -P $HOME/Downloads && chmod +x aria2.sh
+wget -N git.io/aria2.sh -P $HOME/Downloads && chmod +x $HOME/Downloads/aria2.sh
 ```
 ### Run Script
 ```
