@@ -64,12 +64,10 @@ var bundle *i18n.Bundle
 var loc *i18n.Localizer
 
 func locLan(locLanguage string) {
-	_, err := os.Stat(info.DownloadFolder)
-	dropErr(err)
 
 	bundle = i18n.NewBundle(language.Chinese)
 	bundle.RegisterUnmarshalFunc("json", json.Unmarshal)
-	_, err = os.Stat("i18n")
+	_, err := os.Stat("i18n")
 	if err != nil {
 		err := os.Mkdir("i18n", 0666)
 		dropErr(err)
@@ -159,6 +157,10 @@ func locText(MessageIDs ...string) string {
 }
 
 func isLocal(uri string) bool {
+	_, err := os.Stat(info.DownloadFolder)
+	if err != nil {
+		return false
+	}
 	return strings.Contains(uri, "127.0.0.1") || strings.Contains(uri, "localhost")
 }
 
@@ -512,5 +514,3 @@ func toInt64(text string) int64 {
 	dropErr(err)
 	return i
 }
-
-

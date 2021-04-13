@@ -106,7 +106,7 @@ At the same time, communication via the bot protocol facilitates use on machines
 4. Configure `config.json` at the root of the program that you want to execute.
 5. Run the executable file
 
-For a more detailed tutorial, please see: [Step by Step Guide for DownloadBot](docs/DownloadBot_Guide_en.md)
+**For a more detailed tutorial, please see:** [Step by Step Guide for DownloadBot](docs/DownloadBot_Guide_en.md)
 
 ## Screenshots
 

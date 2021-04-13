@@ -83,6 +83,7 @@ func GetMyIDAndBearer(infoPath string) (string, string) {
 
 func getAccessToken(oauth2URL string) string {
 	var re *regexp.Regexp
+
 	if len(oauth2URL) > 100 {
 		re = regexp.MustCompile(`(?m)code=(.*?)&`)
 	} else {

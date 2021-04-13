@@ -376,7 +376,7 @@ func uploadFiles(chatMsgID int, chatMsg string, bot *tgBotApi.BotAPI) {
 		//log.Println(b)
 		Keyboards := make([][]tgBotApi.InlineKeyboardButton, 0)
 		if len(b) != 1 {
-			if b[1] == "cancel" {
+			if b[1] == "cancel" { //当用户点击取消或者流程结束后，删除消息
 				tgBotApi.NewDeleteMessage(myID, MessageID)
 				bot.Send(tgBotApi.NewDeleteMessage(myID, MessageID))
 				return
@@ -384,29 +384,29 @@ func uploadFiles(chatMsgID int, chatMsg string, bot *tgBotApi.BotAPI) {
 				switch b[0] {
 				case "onedrive":
 					switch b[1] {
-					case "new":
+					case "new": //向用户发送授权地址
 						text = fmt.Sprintf(
 							`%s https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=ad5e65fd-856d-4356-aefc-537a9700c137&response_type=code&redirect_uri=http://localhost/onedrive-login&response_mode=query&scope=offline_access%%20User.Read%%20Files.ReadWrite.All`,
 							locText("oneDriveGetAccess"),
 						)
-					case "create":
+					case "create": //接收用户返回的授权地址，并进行处理
 						mail := getNewOneDriveInfo(chatMsg)
 						text = locText("oneDriveOAuthFileCreateSuccess") + mail
 					}
 				case "googleDrive":
 					switch b[1] {
-					case "new":
+					case "new": //向用户发送授权地址
 						text = fmt.Sprintf(
 							`%s %s`,
 							locText("googleDriveGetAccess"), getGoogleDriveAuthCodeURL(),
 						)
-					case "create":
+					case "create": //接收用户返回的授权地址，并进行处理
 						mail := getNewGoogleDriveInfo(chatMsg)
 						text = locText("googleDriveOAuthFileCreateSuccess") + mail
 					}
-				case "odInfo":
+				case "odInfo": //获取已登录的OneDrive用户
 					uploadDFToOneDrive("./info/onedrive/" + b[1])
-				case "gdInfo":
+				case "gdInfo": // 获取已登录的 Google drive 用户
 					uploadDFToGoogleDrive("./info/googleDrive/" + b[1])
 				default:
 					switch b[1] {
@@ -477,7 +477,7 @@ func uploadFiles(chatMsgID int, chatMsg string, bot *tgBotApi.BotAPI) {
 							Keyboards = append(Keyboards, inlineKeyBoardRow)
 							text += locText("selectAccount")
 						}
-					case "Upload":
+					case "Upload": //弃用项
 						//CopyFiles(copyFiles)
 						bot.Send(tgBotApi.NewDeleteMessage(myID, MessageID))
 						bot.Send(tgBotApi.NewMessage(myID, locText("filesUploadSuccessfully")))
@@ -486,7 +486,7 @@ func uploadFiles(chatMsgID int, chatMsg string, bot *tgBotApi.BotAPI) {
 				}
 			}
 
-		} else {
+		} else { // 生成 选择网盘菜单
 			text = fmt.Sprintf(locText("chooseDrive"))
 
 			inlineKeyBoardRow := make([]tgBotApi.InlineKeyboardButton, 0)
@@ -510,15 +510,14 @@ func uploadFiles(chatMsgID int, chatMsg string, bot *tgBotApi.BotAPI) {
 		msg := tgBotApi.NewMessage(myID, text)
 		msg.ParseMode = "Markdown"
 		if MessageID == 0 {
-			if len(Keyboards) != 0 {
+			if len(Keyboards) != 0 { // 非首次生成选择消息
 				msg.ReplyMarkup = tgBotApi.NewInlineKeyboardMarkup(Keyboards...)
 			}
 			res, err := bot.Send(msg)
 			dropErr(err)
 			MessageID = res.MessageID
 
-		} else {
-
+		} else { // 首次生成选择消息
 			if len(Keyboards) != 0 {
 				newMsg := tgBotApi.NewEditMessageTextAndMarkup(myID, MessageID, text, tgBotApi.NewInlineKeyboardMarkup(Keyboards...))
 				bot.Send(newMsg)
@@ -533,9 +532,46 @@ func uploadFiles(chatMsgID int, chatMsg string, bot *tgBotApi.BotAPI) {
 
 var activeRefreshControl = 0
 
+// activeRefresh 刷新下载进度显示
 func activeRefresh(chatMsgID int, bot *tgBotApi.BotAPI, ticker *time.Ticker, flag int) {
 	var MessageID = 0
 	myID := toInt64(info.UserID)
+
+	refreshPath := func(MessageID int, myID int64, bot *tgBotApi.BotAPI, ticker *time.Ticker) int {
+		res := formatTellSomething(aria2Rpc.TellActive())
+		//log.Println(res, len(res))
+		text := ""
+		if res != "" {
+			text = res
+		} else {
+			text = locText("noActiveTask")
+		}
+		if MessageID == 0 {
+			msg := tgBotApi.NewMessage(myID, text)
+			msg.ParseMode = "Markdown"
+			res, err := bot.Send(msg)
+			dropErr(err)
+			if text == locText("noActiveTask") {
+				ticker.Stop()
+				return -1
+			} else {
+				return res.MessageID
+			}
+		} else {
+			if text == locText("noActiveTask") {
+				bot.Send(tgBotApi.NewDeleteMessage(myID, MessageID))
+				ticker.Stop()
+				return -1
+			} else {
+				newMsg := tgBotApi.NewEditMessageText(myID, MessageID, text)
+				newMsg.ParseMode = "Markdown"
+				bot.Send(newMsg)
+				return newMsg.MessageID
+			}
+
+		}
+	}
+
 	for {
 		if activeRefreshControl != flag {
 			if MessageID != 0 {
@@ -563,41 +599,6 @@ func activeRefresh(chatMsgID int, bot *tgBotApi.BotAPI, ticker *time.Ticker, fla
 				}
 			}
 		}
-	}
-}
-
-func refreshPath(MessageID int, myID int64, bot *tgBotApi.BotAPI, ticker *time.Ticker) int {
-	res := formatTellSomething(aria2Rpc.TellActive())
-	//log.Println(res, len(res))
-	text := ""
-	if res != "" {
-		text = res
-	} else {
-		text = locText("noActiveTask")
-	}
-	if MessageID == 0 {
-		msg := tgBotApi.NewMessage(myID, text)
-		msg.ParseMode = "Markdown"
-		res, err := bot.Send(msg)
-		dropErr(err)
-		if text == locText("noActiveTask") {
-			ticker.Stop()
-			return -1
-		} else {
-			return res.MessageID
-		}
-	} else {
-		if text == locText("noActiveTask") {
-			bot.Send(tgBotApi.NewDeleteMessage(myID, MessageID))
-			ticker.Stop()
-			return -1
-		} else {
-			newMsg := tgBotApi.NewEditMessageText(myID, MessageID, text)
-			newMsg.ParseMode = "Markdown"
-			bot.Send(newMsg)
-			return newMsg.MessageID
-		}
-
 	}
 }
 
