@@ -113,7 +113,7 @@ func GetAllFile(pathname string, folderIDList []string, srv *drive.Service, star
 		return err
 	}
 	_, foldName := filepath.Split(pathname)
-	log.Println(foldName)
+	//log.Println(foldName)
 	var createFolder *drive.File
 	if folderIDList == nil {
 		createFolder, err = srv.Files.Create(&drive.File{Name: foldName, MimeType: "application/vnd.google-apps.folder"}).Do()
@@ -151,7 +151,7 @@ func GetAllFile(pathname string, folderIDList []string, srv *drive.Service, star
 				log.Fatalf("error opening %q: %v", fullName, err)
 			}
 			defer f.Close()
-			log.Println("file", fi.Name(), fullName)
+			//log.Println("file", fi.Name(), fullName)
 			//上傳檔案，create要給定檔案名稱，要傳進資料夾就加上Parents參數給定folderID的array，media傳入我們要上傳的檔案，最後Do
 			_, err = srv.Files.Create(&drive.File{Name: fi.Name(), Parents: tempFolderIDList}).Media(f).Do()
 			if err != nil {
@@ -216,6 +216,10 @@ func CreateNewInfo(code string) string {
 }
 
 func Upload(infoPath string, filePath string, sendMsg func() func(text string), locText func(text string) string) {
+	ctx, config := gdInit()
+	tok, _ := tokenFromFile(infoPath)
+	client := config.Client(ctx, tok)
+	srv, err := drive.New(client)
 	username := strings.ReplaceAll(filepath.Base(infoPath), ".json", "")
 	// restoreOption := "orig"
 	oldDir, err := os.Getwd()
@@ -229,10 +233,7 @@ func Upload(infoPath string, filePath string, sendMsg func() func(text string), 
 	filePath = path.Base(filePath)
 	temp := sendMsg()
 	temp("`" + filePath + "`" + locText("startUploadGoogleDrive"))
-	ctx, config := gdInit()
-	tok, _ := tokenFromFile(infoPath)
-	client := config.Client(ctx, tok)
-	srv, err := drive.New(client)
+
 	if err != nil {
 		log.Fatalf("Unable to retrieve drive Client %v", err)
 
