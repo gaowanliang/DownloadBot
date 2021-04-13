@@ -1,6 +1,7 @@
 package onedrive
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -12,6 +13,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 )
 
 func ApplyForNewPass(url string) string {
@@ -25,6 +27,21 @@ func refreshToken(infoPath string) (string, string, string) {
 }
 
 func Upload(infoPath string, filePath string, threads int, sendMsg func() func(text string), locText func(text string) string) {
+
+	filePtr, err := os.Open(infoPath)
+	if err != nil {
+		log.Panicln(err)
+	}
+	defer filePtr.Close()
+	var info httpLocal.Token
+
+	// 创建json解码器
+	decoder := json.NewDecoder(filePtr)
+	err = decoder.Decode(&info)
+	if err != nil {
+		log.Panicln(err.Error())
+	}
+	fileutil.SetDefaultChunkSize(info.BlockSize)
 	programPath, err := filepath.Abs(filepath.Dir(infoPath))
 	if err != nil {
 		log.Panic(err)
@@ -43,7 +60,7 @@ func Upload(infoPath string, filePath string, threads int, sendMsg func() func(t
 	}
 	filePath = path.Base(filePath)
 	//Initialize the upload restore service
-	restoreSrvc := upload.GetRestoreService(http.DefaultClient)
+	restoreSrvc := upload.GetRestoreService(&http.Client{Timeout: time.Duration(info.TimeOut) * time.Second})
 
 	//Get the list of files that needs to be restore with the actual backed up path. 获取需要使用实际备份路径还原的文件列表。
 	fileInfoToUpload, err := fileutil.GetAllUploadItemsFrmSource(filePath)
@@ -57,7 +74,7 @@ func Upload(infoPath string, filePath string, threads int, sendMsg func() func(t
 	} else {
 		restore(restoreSrvc, fileInfoToUpload, threads)
 	}*/
-	restore(restoreSrvc, fileInfoToUpload, threads, sendMsg, locText, infoPath)
+	restore(restoreSrvc, fileInfoToUpload, info.ThreadNum, sendMsg, locText, infoPath)
 	err = os.Chdir(oldDir)
 	if err != nil {
 		log.Panic(err)

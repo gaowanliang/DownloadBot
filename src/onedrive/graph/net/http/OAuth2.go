@@ -13,7 +13,7 @@ import (
 	"github.com/buger/jsonparser"
 )
 
-type token struct {
+type Token struct {
 	RefreshToken string `json:"refresh_token"`
 	ThreadNum    int    `json:"threadNum"`
 	BlockSize    int    `json:"blockSize"`
@@ -123,7 +123,7 @@ func getAccessToken(oauth2URL string) string {
 	}
 	//log.Println(refreshToken)
 
-	info := token{
+	info := Token{
 		RefreshToken: refreshToken,
 		ThreadNum:    3,
 		BlockSize:    10,
@@ -152,7 +152,7 @@ func refreshAccessToken(path string) string {
 		return ""
 	}
 	defer filePtr.Close()
-	var info token
+	var info Token
 	// 创建json解码器
 	decoder := json.NewDecoder(filePtr)
 	err = decoder.Decode(&info)
@@ -182,7 +182,7 @@ func refreshAccessToken(path string) string {
 	}
 	// log.Println(refreshToken)
 
-	info = token{
+	info = Token{
 		RefreshToken: refreshToken,
 		ThreadNum:    info.ThreadNum,
 		BlockSize:    info.BlockSize,
