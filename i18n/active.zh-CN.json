@@ -86,7 +86,7 @@
   "startUploadOneDrive": "开始上传至OneDrive",
   "uploadOneDriveComplete": "DownloadFolder上传至OneDrive完成",
   "oneDriveBigFile": "文件: `%s` 开始上传至OneDrive\n账户:`%s`\n文件超过4MB，进入大文件通道",
-  "oneDriveSmallFile": "文件: `%s` 开始上传至OneDrive\n账户:`%s`\n文件小于4MB，进入小文件通道，上传中......",
+  "oneDriveSmallFile": "文件: `%s` 开始上传至OneDrive\n账户:`%s`\n文件小于4MB，进入小文件通道，上传中",
   "oneDriveGetAccess": "请打开下面的网址，登录OneDrive账户后，将跳转后的网址复制后，发送给本Bot\n注意：本程序不会涉及您的隐私信息，请放心使用",
   "oneDriveOAuthFileCreateSuccess": "OneDrive OAuth2文件创建成功，保存至：",
   "noOneDriveInfo": "没有OneDrive上传配置，是否需要新建配置",

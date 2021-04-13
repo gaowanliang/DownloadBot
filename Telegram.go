@@ -70,7 +70,7 @@ func TMSelectMessage(bot *tgBotApi.BotAPI) {
 			if b[1] == "Start" {
 				setTMDownloadFilesAndStart(gid, lastFilesInfo)
 				bot.Send(tgBotApi.NewDeleteMessage(myID, MessageID))
-				break
+				continue
 			}
 			for i := 0; i < len(lastFilesInfo); i++ {
 				if lastFilesInfo[i][2] == "true" {
