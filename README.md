@@ -1,4 +1,4 @@
-[简体中文](README_zh-CN.md) [繁體中文](README_zh-TW.md)
+[简体中文](docs/README_zh-CN.md) [繁體中文](docs/README_zh-TW.md)
 
 # DownloadBot
 
@@ -106,6 +106,8 @@ At the same time, communication via the bot protocol facilitates use on machines
 4. Configure `config.json` at the root of the program that you want to execute.
 5. Run the executable file
 
+For a more detailed tutorial, please see: [Step by Step Guide for DownloadBot](docs/DownloadBot_Guide_en.md)
+
 ## Screenshots
 
 <div align="center">
@@ -136,11 +138,11 @@ At the same time, communication via the bot protocol facilitates use on machines
 * aria2-key : The value of `rpc-secret` in `aria2.conf`
 * bot-key : ID of telegram Bot, get it by using [@BotFather](https://telegram.me/botfather)
 * user-id : The ID of the administrator. It supports setting multiple users as administrators. Different users are separated by commas `,` . If you want to set the users whose `user-id` are 123465789, 987654321 and 963852741 as administrators, you need to set them as follows:
-  ```json
+  ```jsonc
   {
-    ···
+    //···
     "user-id": "123456789,987654321,963852741",
-    ···
+    //···
   }
   ```
 * max-index：Maximum display quantity of download information, 10 pieces are recommended (to be improved in the future)

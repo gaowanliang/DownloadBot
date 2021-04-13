@@ -15,6 +15,9 @@ import (
 
 type token struct {
 	RefreshToken string `json:"refresh_token"`
+	ThreadNum    int    `json:"threadNum"`
+	BlockSize    int    `json:"blockSize"`
+	TimeOut      int    `json:"timeout"`
 }
 
 func NewPassCheck(oauth2URL string) string {
@@ -30,7 +33,13 @@ func NewPassCheck(oauth2URL string) string {
 	}
 	defer resp.Body.Close()
 	body, _ := ioutil.ReadAll(resp.Body)
-	mail, err := jsonparser.GetString(body, "mail")
+	var mail string
+	if strings.Contains(string(body), "userPrincipalName") {
+		mail, err = jsonparser.GetString(body, "userPrincipalName")
+	} else {
+		mail, err = jsonparser.GetString(body, "mail")
+	}
+
 	if err != nil {
 		log.Println(string(body))
 		log.Panicln(err)
@@ -73,7 +82,13 @@ func GetMyIDAndBearer(infoPath string) (string, string) {
 }
 
 func getAccessToken(oauth2URL string) string {
-	var re = regexp.MustCompile(`(?m)code=(.*?)&`)
+	var re *regexp.Regexp
+	if len(oauth2URL) > 100 {
+		re = regexp.MustCompile(`(?m)code=(.*?)&`)
+	} else {
+		re = regexp.MustCompile(`(?m)code=(.*?)$`)
+	}
+
 	var str = oauth2URL
 	/*log.Printf(
 		`%s https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=ad5e65fd-856d-4356-aefc-537a9700c137&response_type=code&redirect_uri=http://localhost/onedrive-login&response_mode=query&scope=offline_access%%20User.Read%%20Files.ReadWrite.All`,
@@ -81,7 +96,7 @@ func getAccessToken(oauth2URL string) string {
 	)*/
 
 	code := re.FindStringSubmatch(str)[1]
-	//fmt.Println(res)
+
 	url := "https://login.microsoftonline.com/common/oauth2/v2.0/token"
 	req, err := http.NewRequest("POST", url, strings.NewReader(fmt.Sprintf("client_id=ad5e65fd-856d-4356-aefc-537a9700c137&scope=offline_access%%20User.Read%%20Files.ReadWrite.All&code=%s&redirect_uri=http://localhost/onedrive-login&grant_type=authorization_code", code)))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
@@ -109,6 +124,9 @@ func getAccessToken(oauth2URL string) string {
 
 	info := token{
 		RefreshToken: refreshToken,
+		ThreadNum:    3,
+		BlockSize:    10,
+		TimeOut:      60,
 	}
 	// 创建文件
 	filePtr, err := os.Create("./info/onedrive/amazing.json")
@@ -165,6 +183,9 @@ func refreshAccessToken(path string) string {
 
 	info = token{
 		RefreshToken: refreshToken,
+		ThreadNum:    info.ThreadNum,
+		BlockSize:    info.BlockSize,
+		TimeOut:      info.TimeOut,
 	}
 	// 创建文件
 	filePtr, err = os.Create(path)

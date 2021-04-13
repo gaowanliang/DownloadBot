@@ -869,7 +869,12 @@ func tgBot(BotKey string, wg *sync.WaitGroup) {
 					if strings.Contains(update.Message.Text, "localhost/onedrive-login") {
 						//如果是OneDrive auth code 链接
 						createDriveInfoFolder("./info/onedrive")
-						var re = regexp.MustCompile(`(?m)code=(.*?)&`)
+						var re *regexp.Regexp
+						if len(update.Message.Text) > 100 {
+							re = regexp.MustCompile(`(?m)code=(.*?)&`)
+						} else {
+							re = regexp.MustCompile(`(?m)code=(.*?)`)
+						}
 						judgeLegal := re.FindStringSubmatch(update.Message.Text)
 						//log.Println(judgeLegal)
 						if len(judgeLegal) >= 2 {
