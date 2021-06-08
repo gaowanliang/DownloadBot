@@ -6,14 +6,14 @@
 [![GitHub Star](https://img.shields.io/github/stars/gaowanliang/DownloadBot.svg?style=flat-square&label=Star&color=f39c12)](https://github.com/gaowanliang/DownloadBot/stargazers)
 [![GitHub Fork](https://img.shields.io/github/forks/gaowanliang/DownloadBot.svg?style=flat-square&label=Fork&color=8e44ad)](https://github.com/gaowanliang/DownloadBot/network/members)
 
-(目前) 🤖 一個可以控制你的Aria2伺服器、控制伺服器檔，同時可以上傳到OneDrive的Telegram Bot。
+(目前) 🤖 一個可以控制你的Aria2伺服器、控制伺服器檔，同時可以上傳到OneDrive/Google Drive的Telegram Bot。
 
 ## 意義
+> 以下僅為本程式完成後的設想，目前描述的功能並沒有完全實現，實現的詳情請參考下面的功能實現
 
 這個項目主要就是利用吃灰小盤vps進行離線下載，對於大bt檔進行根據硬碟大小分段下載，每次都下載一部分，然後上傳網盤，刪除再下載其他部分，直到下載完所有檔。
 
-同時，通過機器人協議通信，方便在無法進行內網穿透的機器上進行使用，而且簡化了平時使用下載程式的操作，提高了便利性。對於連結，直接向Bot發送消息就可以直接識別並下載，可以真正刪除下載檔案夾裡的檔，是AriaNG等web面板無法做到的，作為管理下載的工具，及時通知下載完成都是非常的方便的。可以移動檔，對於通過rclone掛載硬碟的使用者可以直接通過本程式進行複製粘貼等操作，無需打開ssh連接VPS進行cp操作，也非常的方便。
-
+同時，通過機器人協議通信，方便在無法進行內網穿透的機器上進行使用，而且簡化了平時使用下載程式的操作，提高了便利性。對於連結，直接向Bot發送消息就可以直接識別並下載，可以真正刪除下載檔案夾裡的檔，是AriaNG等web面板無法做到的，作為管理下載的工具，及時通知下載完成都是非常的方便的。可以移動檔，對於通過rclone掛載硬碟的使用者可以直接通過本程式進行複製粘貼等操作，無需打開ssh連接VPS進行`cp`操作，也非常的方便。
 
 ## 實現
 
@@ -34,6 +34,8 @@
 #### 機器人協定支援
 
 - [x] Telegram Bot
+  - [x] 支援多用戶使用
+  - [ ] 支援群組內使用
 - [ ] 騰訊QQ（使用普通QQ用戶來進行交互）
 - [ ] 釘釘機器人
 
@@ -50,6 +52,14 @@
     - [x] 智慧 BitTorrent/Magnet 下載方式
         - [x] 只選擇下載最大的文件
         - [x] 根據檔大小智慧選擇檔，不選擇小文件
+    - [ ] 下載OneDrive/SharePoint 分享連結中的檔（[Python demo](https://github.com/gaowanliang/OneDriveShareLinkPushAria2)）
+      - [ ] xxx-my.sharepoint.com 下載連結的下載
+        - [ ] 無下載密碼的多檔推送
+        - [ ] 有下載密碼的多檔推送
+        - [ ] 嵌套資料夾的文件推送
+        - [ ] 任意選擇檔推送
+      - [ ] xxx.sharepoint.com 下載連結的下載
+      - [ ] xxx-my.sharepoint.cn 下載連結的下載(理論上支持)
     - [ ] 自我調整環境存儲空間的 BitTorrent/Magnet 下載
         - [ ] 不下載超過存儲空間的檔
         - [ ] 根據存儲空間分塊多次下載 BitTorrent/Magnet 內的檔
@@ -59,7 +69,11 @@
 - [x] 上傳文件
     - [x] 下載完成後，向 OneDrive 上傳檔
       - [ ] 中斷點續傳
+      - [ ] 支持世紀互聯
     - [x] 下載完成後，向 Google Drive 上傳檔
+      - [x] 自訂上傳分塊大小
+      - [x] 自訂上傳執行緒數
+      - [x] 自訂超時時間
     - [ ] 下載完成後，向 Mega 上傳檔
     - [ ] 下載完成後，向 天翼網盤 上傳文件
     - [ ] (當使用Telegram進行通信時)下載完成後，向 Telegram 上傳檔
@@ -131,8 +145,15 @@
 * aria2-server：aria2伺服器位址，默認使用websocket連接。如果要使用websocket連接aria2，請務必設置`aria2.conf`內的`enable-rpc=true`
   。如果不是必須，請儘量設置本地的aria2位址，以便於最大化的使用本程式
 * aria2-key：`aria2.conf`中`rpc-secret`的值
-* bot-key：Telegram Bot的標識
-* user-id：管理員的ID
+* bot-key：Telegram Bot的標識，通過 [@BotFather](https://telegram.me/botfather)進行獲取。
+* user-id：管理員的ID，支援設置多用戶為管理員，不同的用戶之間使用半形逗號`,`分割。如您要設置`user-id`為123465789、987654321和963852741的使用者為管理員，您需要這樣設置：
+  ```jsonc
+  {
+    //···
+    "user-id": "123456789,987654321,963852741",
+    //···
+  }
+  ```
 * max-index：下載資訊最大顯示數量，建議10條（以後會改進）
 * sign：此機器人的標識，如果需要多個伺服器連接同一個機器人，通過這一項可以確定具體是哪一台伺服器
 * language：機器人輸出的語言

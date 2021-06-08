@@ -86,7 +86,7 @@
     "startUploadOneDrive": "開始上傳至OneDrive",
     "uploadOneDriveComplete": "DownloadFolder上傳至OneDrive完成",
     "oneDriveBigFile": "文件: `%s` 開始上傳至OneDrive\n帳戶:`%s`\n檔超過4MB，進入大檔通道",
-    "oneDriveSmallFile": "文件: `%s` 開始上傳至OneDrive\n帳戶:`%s`\n檔小於4MB，進入小檔通道，上傳中......",
+    "oneDriveSmallFile": "文件: `%s` 開始上傳至OneDrive\n帳戶:`%s`\n檔小於4MB，進入小檔通道，上傳中",
     "oneDriveGetAccess": "請打開下面的網址，登錄OneDrive帳戶後，將跳轉後的網址複製後，發送給本Bot\n注意：本程式不會涉及您的隱私資訊，請放心使用",
     "oneDriveOAuthFileCreateSuccess": "OneDrive OAuth2檔創建成功，保存至：",
     "noOneDriveInfo": "沒有OneDrive上傳配置，是否需要新建配置",
@@ -97,12 +97,13 @@
     "oneDriveUploadTip1": "正在向OneDrive帳戶 `%s` 上傳 `%s` *[%d/%d]*  速度:%s/s 已耗時: %d s",
     "oneDriveUploadTip2": "正在向OneDrive帳戶 `%s` 上傳 `%s` *[%d/%d]*  速度:---- 已耗時: %d s",
     "createNewAcc": "新建帳戶",
-    "googleDriveGetAccess": "請打開下面的網址，登錄google帳戶後，根據頁面的提示複製代碼，發送給本Bot\n注意：本程式不會涉及您的隱私資訊，請放心使用",
+    "googleDriveGetAccess": "請打開下面的網址，登錄Google帳戶後，根據頁面的提示複製代碼，發送給本Bot\n注意：本程式不會涉及您的隱私資訊，請放心使用",
     "noGoogleDriveInfo": "沒有Google Drive上傳配置，是否需要新建配置",
     "errorOneDriveAuthURL": "您輸入的OneDrive OAuth2連結有誤，請重新輸入",
     "googleDriveOAuthFileCreateSuccess": "Google Drive OAuth2檔創建成功，保存至：",
     "startUploadGoogleDrive": "開始上傳至Google Drive",
     "googleDriveUploadTip": "正在向Google Drive帳戶 `%s` 上傳 `%s` 已耗時: %d s",
     "uploadGoogleDriveComplete": "DownloadFolder上傳至Google Drive完成",
-    "oneDriveUploadFailAndRetry": "向OneDrive帳戶 `%s` 上傳 `%s` 時出現連接問題，正在重試，當前為第%d次重試"
+    "oneDriveUploadFailAndRetry": "向OneDrive帳戶 `%s` 上傳 `%s` 時出現連接問題，正在重試，當前為第%d次重試",
+    "googleDriveUploadTip1": "正在向Google Drive帳戶 `%s` 上傳 `%s`\n大小:`%s` 已上傳大小: `%s` 進度: *『%d/%d』*  \n速度:`%s` \n已耗時: `%d s`"
 }

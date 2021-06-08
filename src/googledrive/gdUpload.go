@@ -3,13 +3,17 @@ package googledrive
 import (
 	"encoding/json"
 	"fmt"
+	"google.golang.org/api/googleapi"
 	"io/ioutil"
 	"log"
+	"math"
 	"net/http"
 	"os"
 	"path"
 	"path/filepath"
+	"strconv"
 	"strings"
+	"sync"
 	"time"
 	"unsafe"
 
@@ -19,7 +23,31 @@ import (
 	"google.golang.org/api/drive/v3" //v2跟v3不合用要注意
 )
 
+type Certificate struct {
+	Drive        string      `json:"Drive"`
+	RefreshToken string      `json:"RefreshToken"`
+	ThreadNum    int         `json:"ThreadNum"`
+	BlockSize    int         `json:"BlockSize"`
+	MainLand     bool        `json:"MainLand"`
+	TimeOut      int         `json:"TimeOut"`
+	Other        interface{} `json:"Other"`
+}
+
 // refs https://developers.google.com/drive/v3/web/quickstart/go
+var chunkSize = 10 * 1024 * 1024
+
+func changeChunkSize(block int) {
+	chunkSize = block * 1024 * 1024
+}
+
+var wg sync.WaitGroup
+var threads = 3
+var pool = make(chan struct{}, threads)
+
+func changeThread(thread int) {
+	threads = thread
+	pool = make(chan struct{}, threads)
+}
 
 // getClient uses a Context and Config to retrieve a Token
 // then generate a Client. It returns the generated Client.
@@ -29,7 +57,7 @@ func getClient(file string, ctx context.Context, config *oauth2.Config) *http.Cl
 	//	log.Fatalf("Unable to get path to cached credential file. %v", err)
 	//}
 	//log.Println(cacheFile)
-	tok, _ := tokenFromFile(file) //呼叫tokenFromFile取得token檔
+	tok := &oauth2.Token{} //呼叫tokenFromFile取得token檔
 	/*if err != nil {                      //注意這邊的err不一定是沒有token，也有可能是token的Decode錯誤
 		tok = getTokenFromWeb(config) //呼叫getTokenFromWeb重新產生一個網址要求複製token並貼上
 		saveToken(cacheFile, tok)     //取得新的token就存檔到cacheFile的路徑
@@ -82,35 +110,118 @@ func tokenCacheFile() string {
 
 // tokenFromFile retrieves a Token from a given file path.
 // It returns the retrieved Token and any read error encountered.
-func tokenFromFile(file string) (*oauth2.Token, error) {
+func tokenFromFile(c *oauth2.Config, file string) (*oauth2.Token, error) {
 	//搜尋路徑，有token檔就開啟並Decode，沒有就回傳nil
 	f, err := os.Open(file)
 	if err != nil {
 		return nil, err
 	}
-	t := &oauth2.Token{}
-	err = json.NewDecoder(f).Decode(t) //Decode錯誤也會回傳err
+	ts := &Certificate{}
+	err = json.NewDecoder(f).Decode(ts) //Decode錯誤也會回傳err
+	oauth2Token := ts.Other.(map[string]interface{})
+	expiry, _ := time.Parse(time.RFC3339, oauth2Token["expiry"].(string))
+	t := &oauth2.Token{
+		AccessToken:  oauth2Token["access_token"].(string),
+		TokenType:    oauth2Token["token_type"].(string),
+		RefreshToken: oauth2Token["refresh_token"].(string),
+		Expiry:       expiry,
+	}
 	defer f.Close()
-	return t, err
+
+	// log.Printf("%+v\n", t)
+	updatedToken, err := c.TokenSource(context.TODO(), t).Token()
+	// log.Printf("%+v\n", updatedToken)
+	f, err = os.OpenFile(file, os.O_WRONLY|os.O_TRUNC, 0666)
+	defer f.Close()
+	// log.Printf("%+v\n", t)
+	// log.Printf("%+v\n", updatedToken)
+	data := Certificate{
+		Drive:        "GoogleDrive",
+		RefreshToken: ts.RefreshToken,
+		ThreadNum:    ts.ThreadNum,
+		BlockSize:    ts.BlockSize,
+		MainLand:     false,
+		TimeOut:      ts.TimeOut,
+		Other:        updatedToken,
+	}
+	err = json.NewEncoder(f).Encode(data)
+	if err != nil {
+		log.Fatalf("Unable to cache oauth token: %v", err)
+	}
+
+	changeThread(ts.ThreadNum)
+	changeChunkSize(ts.BlockSize)
+	return updatedToken, err
 }
 
 // saveToken uses a file path to create a file and store the
 // token in it.
 func saveToken(file string, token *oauth2.Token) {
 	//fmt.Printf("Saving credential file to: %s\n", file)
-	f, err := os.Create(file)
+	f, err := os.OpenFile(file, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
 		log.Fatalf("Unable to cache oauth token: %v", err)
 	}
 	defer f.Close()
-	json.NewEncoder(f).Encode(token)
+	data := Certificate{
+		Drive:        "GoogleDrive",
+		RefreshToken: token.RefreshToken,
+		ThreadNum:    3,
+		BlockSize:    10,
+		MainLand:     false,
+		TimeOut:      60,
+		Other:        token,
+	}
+	json.NewEncoder(f).Encode(data)
 }
 
-func GetAllFile(pathname string, folderIDList []string, srv *drive.Service, startTime int64, username string, sendMsg func(text string), locText func(text string) string) error {
+func byte2Readable(bytes float64) string {
+	const kb float64 = 1024
+	const mb float64 = kb * 1024
+	const gb float64 = mb * 1024
+	var readable float64
+	var unit string
+	_bytes := bytes
+
+	if _bytes >= gb {
+		// xx GB
+		readable = _bytes / gb
+		unit = "GB"
+	} else if _bytes < gb && _bytes >= mb {
+		// xx MB
+		readable = _bytes / mb
+		unit = "MB"
+	} else {
+		// xx KB
+		readable = _bytes / kb
+		unit = "KB"
+	}
+	return strconv.FormatFloat(readable, 'f', 2, 64) + " " + unit
+}
+
+func UploadAllFile(pathname string, folderIDList []string, srv *drive.Service, startTime int64, username string, sendMsg func() func(text string), locText func(text string) string) (func(string), error) {
+	filePath := path.Base(pathname)
+	temp := sendMsg()
+	tip := "`" + filePath + "`" + locText("startUploadGoogleDrive")
+	temp(tip)
+
 	rd, err := ioutil.ReadDir(pathname)
 	if err != nil {
-		log.Panic("read dir fail:", err)
-		return err
+		_, fullName := filepath.Split(pathname)
+		var tempFolderIDList []string
+		if folderIDList == nil {
+			tempFolderIDList = folderIDList
+		}
+		f, err := os.Open(fullName)
+		if err != nil {
+			log.Fatalf("error opening %q: %v", fullName, err)
+		}
+		defer f.Close()
+		//log.Println("file", fi.Name(), fullName)
+		//上傳檔案，create要給定檔案名稱，要傳進資料夾就加上Parents參數給定folderID的array，media傳入我們要上傳的檔案，最後Do
+
+		uploadFile(srv, pathname, fullName, tempFolderIDList, f, sendMsg, locText, username)
+		// sendMsg(fmt.Sprintf(locText("googleDriveUploadTip"), username, fullName, time.Now().Unix()-startTime))
 	}
 	_, foldName := filepath.Split(pathname)
 	//log.Println(foldName)
@@ -132,13 +243,13 @@ func GetAllFile(pathname string, folderIDList []string, srv *drive.Service, star
 				tempFolderIDList = folderIDList
 			}
 			tempFolderIDList = append(tempFolderIDList, createFolder.Id)
-			err := GetAllFile(fullDir, tempFolderIDList, srv, startTime, username, sendMsg, locText)
+			_, err := UploadAllFile(fullDir, tempFolderIDList, srv, startTime, username, sendMsg, locText)
 			if err != nil {
 				log.Panic("read dir fail:", err)
-				return err
+				return nil, err
 			}
 			//log.Println("folder", fi.Name(), fullDir)
-			sendMsg(fmt.Sprintf(locText("googleDriveUploadTip"), username, fullDir, time.Now().Unix()-startTime))
+			// sendMsg(fmt.Sprintf(locText("googleDriveUploadTip"), username, fullDir, time.Now().Unix()-startTime))
 		} else {
 			fullName := pathname + "/" + fi.Name()
 			var tempFolderIDList []string
@@ -153,20 +264,89 @@ func GetAllFile(pathname string, folderIDList []string, srv *drive.Service, star
 			defer f.Close()
 			//log.Println("file", fi.Name(), fullName)
 			//上傳檔案，create要給定檔案名稱，要傳進資料夾就加上Parents參數給定folderID的array，media傳入我們要上傳的檔案，最後Do
-			_, err = srv.Files.Create(&drive.File{Name: fi.Name(), Parents: tempFolderIDList}).Media(f).Do()
+			// _, err = srv.Files.Create(&drive.File{Name: fi.Name(), Parents: tempFolderIDList}).Media(f, googleapi.ChunkSize(chunkSize)).Do()
+			uploadFile(srv, fullName, fi.Name(), tempFolderIDList, f, sendMsg, locText, username)
 			if err != nil {
 				log.Panicf("Unable to create file: %v", err)
 			}
-			sendMsg(fmt.Sprintf(locText("googleDriveUploadTip"), username, fullName, time.Now().Unix()-startTime))
-
+			// sendMsg(fmt.Sprintf(locText("googleDriveUploadTip"), username, fullName, time.Now().Unix()-startTime))
 			//log.Printf("file: %+v", driveFile)
 		}
 	}
-	return nil
+	wg.Wait()
+	return temp, nil
+}
+func FileSizeFormat(bytes int64, forceBytes bool) string {
+	if forceBytes {
+		return fmt.Sprintf("%v B", bytes)
+	}
+
+	units := []string{"B", "KB", "MB", "GB", "TB", "PB"}
+
+	var i int
+	value := float64(bytes)
+
+	for value > 1000 {
+		value /= 1000
+		i++
+	}
+	return fmt.Sprintf("%.1f %s", value, units[i])
+}
+
+func MeasureTransferRate() func(int64) string {
+	start := time.Now()
+
+	return func(bytes int64) string {
+		seconds := int64(time.Now().Sub(start).Seconds())
+		if seconds < 1 {
+			return fmt.Sprintf("%s/s", FileSizeFormat(bytes, false))
+		}
+		bps := bytes / seconds
+		return fmt.Sprintf("%s/s", FileSizeFormat(bps, false))
+	}
+}
+
+func uploadFile(srv *drive.Service, filePath string, filename string, tempFolderIDList []string, f *os.File, sendMsg func() func(text string), locText func(text string) string, username string) {
+	wg.Add(1)
+	pool <- struct{}{}
+	startTime := time.Now().Unix()
+	go func() {
+		defer wg.Done()
+		defer func() {
+			<-pool
+		}()
+		temp := sendMsg()
+
+		tip := "`" + filePath + "`" + locText("startUploadGoogleDrive")
+		temp(tip)
+
+		fi, err := os.Stat(filePath)
+		if err != nil {
+			fi, err = os.Stat(filename)
+			if err != nil {
+				log.Panicln(err)
+			}
+		}
+		getRate := MeasureTransferRate()
+		size := fi.Size()
+		// log.Println(byte2Readable(float64(size)))
+
+		showProgress := func(current, total int64) {
+			temp(fmt.Sprintf(locText("googleDriveUploadTip1"), username, filePath, byte2Readable(float64(size)), byte2Readable(float64(current)), int(math.Ceil(float64(current)/float64(chunkSize))), int(math.Ceil(float64(size)/float64(chunkSize))), getRate(current), time.Now().Unix()-startTime))
+		}
+
+		_, err = srv.Files.Create(&drive.File{Name: filename, Parents: tempFolderIDList}).Media(f, googleapi.ChunkSize(chunkSize)).ProgressUpdater(showProgress).Do()
+		if err != nil {
+			log.Panicln(err)
+		}
+
+		defer temp("close")
+	}()
+
 }
 
 /*func main() {
-	GetAllFile("test")
+	UploadAllFile("test")
 }*/
 
 func gdInit() (ctx context.Context, config *oauth2.Config) {
@@ -217,7 +397,8 @@ func CreateNewInfo(code string) string {
 
 func Upload(infoPath string, filePath string, sendMsg func() func(text string), locText func(text string) string) {
 	ctx, config := gdInit()
-	tok, _ := tokenFromFile(infoPath)
+	infoPath, _ = filepath.Abs(infoPath)
+	tok, _ := tokenFromFile(config, infoPath)
 	client := config.Client(ctx, tok)
 	srv, err := drive.New(client)
 	username := strings.ReplaceAll(filepath.Base(infoPath), ".json", "")
@@ -230,15 +411,12 @@ func Upload(infoPath string, filePath string, sendMsg func() func(text string), 
 	if err != nil {
 		log.Panic(err)
 	}
-	filePath = path.Base(filePath)
-	temp := sendMsg()
-	temp("`" + filePath + "`" + locText("startUploadGoogleDrive"))
 
 	if err != nil {
 		log.Fatalf("Unable to retrieve drive Client %v", err)
 
 	}
-	_ = GetAllFile(filePath, nil, srv, time.Now().Unix(), username, temp, locText)
+	temp, _ := UploadAllFile(filePath, nil, srv, time.Now().Unix(), username, sendMsg, locText)
 	temp(locText("uploadGoogleDriveComplete"))
 	err = os.Chdir(oldDir)
 	if err != nil {
@@ -283,6 +461,6 @@ func main() {
 
 		log.Printf("file: %+v", driveFile)*/
 
-	//GetAllFile("test", nil, srv)
+	//UploadAllFile("test", nil, srv)
 	log.Println("done")
 }

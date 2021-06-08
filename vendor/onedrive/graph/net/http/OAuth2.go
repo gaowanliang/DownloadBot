@@ -123,7 +123,7 @@ func getAccessToken(oauth2URL string) string {
 	}
 	//log.Println(refreshToken)
 
-	info :=Token{
+	info := Token{
 		RefreshToken: refreshToken,
 		ThreadNum:    3,
 		BlockSize:    10,

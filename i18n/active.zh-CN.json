@@ -97,12 +97,13 @@
   "oneDriveUploadTip1": "正在向OneDrive账户 `%s` 上传 `%s` *[%d/%d]*  速度:%s/s 已耗时: %d s",
   "oneDriveUploadTip2": "正在向OneDrive账户 `%s` 上传 `%s` *[%d/%d]*  速度:---- 已耗时: %d s",
   "createNewAcc": "新建账户",
-  "googleDriveGetAccess": "请打开下面的网址，登录google账户后，根据页面的提示复制代码，发送给本Bot\n注意：本程序不会涉及您的隐私信息，请放心使用",
+  "googleDriveGetAccess": "请打开下面的网址，登录Google账户后，根据页面的提示复制代码，发送给本Bot\n注意：本程序不会涉及您的隐私信息，请放心使用",
   "noGoogleDriveInfo": "没有Google Drive上传配置，是否需要新建配置",
   "errorOneDriveAuthURL": "您输入的OneDrive OAuth2链接有误，请重新输入",
   "googleDriveOAuthFileCreateSuccess": "Google Drive OAuth2文件创建成功，保存至：",
   "startUploadGoogleDrive": "开始上传至Google Drive",
   "googleDriveUploadTip": "正在向Google Drive账户 `%s` 上传 `%s` 已耗时: %d s",
   "uploadGoogleDriveComplete": "DownloadFolder上传至Google Drive完成",
-  "oneDriveUploadFailAndRetry": "向OneDrive账户 `%s` 上传 `%s` 时出现连接问题，正在重试，当前为第%d次重试"
+  "oneDriveUploadFailAndRetry": "向OneDrive账户 `%s` 上传 `%s` 时出现连接问题，正在重试，当前为第%d次重试",
+  "googleDriveUploadTip1": "正在向Google Drive账户 `%s` 上传 `%s`\n大小:`%s` 已上传大小: `%s` 进度: *『%d/%d』*  \n速度:`%s` \n已耗时: `%d s`"
 }

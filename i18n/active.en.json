@@ -97,12 +97,13 @@
     "oneDriveUploadTip1": "OneDrive account `%s` \n Uploading `%s` *[%d/%d]*  Speed:`%s/s` Time: `%d s`",
     "oneDriveUploadTip2": "OneDrive account `%s` \n Uploading `%s` *[%d/%d]*  Speed:`----` Time: `%d s`",
     "createNewAcc": "New",
-    "googleDriveGetAccess": "Please open the following URL, log in to your google account and follow the instructions on the page to copy the code and send it to this Bot\nNote: This program does not involve your private information, please feel free to use it.",
+    "googleDriveGetAccess": "Please open the following URL, log in to your Google account and follow the instructions on the page to copy the code and send it to this Bot\nNote: This program does not involve your private information, please feel free to use it.",
     "noGoogleDriveInfo": "No Google Drive upload configuration, do I need to create a new one?",
     "errorOneDriveAuthURL": "The OneDrive OAuth2 link you have entered is incorrect, please re-enter it",
     "googleDriveOAuthFileCreateSuccess": "Google Drive OAuth2 file created successfully, save to:",
     "startUploadGoogleDrive": "Start uploading to Google Drive",
     "googleDriveUploadTip": "Google Drive account `%s` \n Uploading `%s` Time: %d s",
     "uploadGoogleDriveComplete": "DownloadFolder upload to Google Drive complete",
-    "oneDriveUploadFailAndRetry": "OneDrive account `%s` \n There was a connection problem when uploading `%s`. Retrying. It's the %d times retrying"
+    "oneDriveUploadFailAndRetry": "OneDrive account `%s` \n There was a connection problem when uploading `%s`. Retrying. It's the %d times retrying",
+    "googleDriveUploadTip1": "OneDrive account `%s` \n Uploading `%s` \n Size:`%s` Complete: `%s`\nProgress: *『%d/%d』*  \nSpeed:`%s` \nTime: `%d s`"
 }
