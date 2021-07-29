@@ -4,11 +4,6 @@ import (
 	goTree "DownloadBot/src/gotree"
 	"encoding/json"
 	"fmt"
-	"github.com/nicksnyder/go-i18n/v2/i18n"
-	"github.com/shirou/gopsutil/cpu"
-	"github.com/shirou/gopsutil/disk"
-	"github.com/shirou/gopsutil/mem"
-	"golang.org/x/text/language"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -19,6 +14,12 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/nicksnyder/go-i18n/v2/i18n"
+	"github.com/shirou/gopsutil/cpu"
+	"github.com/shirou/gopsutil/disk"
+	"github.com/shirou/gopsutil/mem"
+	"golang.org/x/text/language"
 )
 
 func byte2Readable(bytes float64) string {
@@ -455,11 +456,15 @@ func printFolderTree(pathName string, fileSelect map[int]bool, selectFileIndex s
 
 func printProgressBar(progress float64) string {
 	progressBar := "["
-	for i := 0; i < int(progress/7.7); i++ {
-		progressBar += "●"
-	}
-	for i := 0; i < 13-int(progress/7.7); i++ {
-		progressBar += "○"
+	if progress != 100 {
+		for i := 0; i < int(progress/7.7); i++ {
+			progressBar += "●"
+		}
+		for i := 0; i < 13-int(progress/7.7); i++ {
+			progressBar += "○"
+		}
+	} else {
+		progressBar += "●●●●●●●●●●●●●"
 	}
 	progressBar += "] " + strconv.FormatFloat(progress, 'f', 2, 64) + " %"
 	return progressBar
