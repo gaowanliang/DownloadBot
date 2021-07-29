@@ -55,6 +55,8 @@ A 5：直接发送文件直链或BT链接到你的Bot即可
 
 A 6：目前版本中Bot菜单没有指令，必须手动输入指令：`Delete files from the download folder`，然后按照提示操作即可。似乎0.4版本的菜单中有指令，等待修复。
 
+PS：如果您是通过本软件控制远程服务器下载文件，下载的文件在远程服务器，本程序自然无法访问远程服务器上的文件，因此规定您设置的IP地址需要是本机IP地址，才允许使用上传/移动/删除等功能。所以只有当IP地址为`localhost`或者是`127.0.0.1`时，才允许上传。
+
 ### Q 7：如何绑定OneDrive 网盘账户？
 
 A 7：发送 `Upload all files in the download folder` 给Bot，单击返回菜单中的 `1`（OneDrive），单击添加，你会得到一个URL。在浏览器中打开URL并登录授权你的OneDrive账户，随后你的浏览器会跳转至一个无法打开的URL，复制它并发送给Bot，即绑定成功。
@@ -64,6 +66,7 @@ A 7：发送 `Upload all files in the download folder` 给Bot，单击返回菜�
 ### Q 8：如何解绑OneDrive网盘账户？
 
  A 8：删除 `./DownloadBot/info/onedrive/你的onedrive账号.json`即可
+PS：本程序中不存在绑定/解绑用户的问题，你可以一次使用多个账户，他们之间互不干扰
 
 ### Q 9：如何后台运行DownloadBot？
 
