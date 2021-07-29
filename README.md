@@ -1,4 +1,5 @@
 [简体中文](docs/README_zh-CN.md) [繁體中文](docs/README_zh-TW.md)
+[简体中文问答文档](docs/Q&A_zh-CN.md)
 
 # DownloadBot
 
@@ -176,5 +177,4 @@ When you fill in the above language tag in `config.json`, the program will autom
 
 #### About user-id
 If you don't know your `user-id`, you can leave this field blank and enter `/myid` after running the Bot, and the Bot will return your `user-id`
-
 
