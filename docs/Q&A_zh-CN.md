@@ -66,13 +66,14 @@ A 7：发送 `Upload all files in the download folder` 给Bot，单击返回菜�
 ### Q 8：如何解绑OneDrive网盘账户？
 
  A 8：删除 `./DownloadBot/info/onedrive/你的onedrive账号.json`即可
+
 PS：本程序中不存在绑定/解绑用户的问题，你可以一次使用多个账户，他们之间互不干扰
 
 ### Q 9：如何后台运行DownloadBot？
 
 A 9：
 1. 在指令后添加`&`，如`./DownloadBot &`，这样可以在SSH断开时依旧运行本程序。
-2. 使用screen，具体方法参考 https://www.runoob.com/linux/linux-comm-screen.html
+2. 使用`screen`，具体方法参考 https://www.runoob.com/linux/linux-comm-screen.html
 
 ## 文档贡献者
 

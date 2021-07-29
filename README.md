@@ -113,6 +113,7 @@ At the same time, communication via the bot protocol facilitates use on machines
 2. Real time notification, it's now using Aria2's Websocket protocol to communicate.
 3. Better config file support.
 
+
 ## Setup
 
 1. Create your own bot and get its access token by using [@BotFather](https://telegram.me/botfather)
@@ -121,7 +122,12 @@ At the same time, communication via the bot protocol facilitates use on machines
 4. Configure `config.json` at the root of the program that you want to execute.
 5. Run the executable file
 
+## tutorial
+
 **For a more detailed tutorial, please see:** [Step by Step Guide for DownloadBot](docs/DownloadBot_Guide_en.md)
+
+[DownloadBot Q&A](docs/Q&A_en.md)
+
 
 ## Screenshots
 
