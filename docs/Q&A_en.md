@@ -5,16 +5,18 @@ Since [project author](https://github.com/gaowanliang) does not have enough time
 
 ## Q & A
 
-### Q 1：How to run DownloadBot?
+### Q 1: How to run DownloadBot?
 
-A 1：Execute the command `./DownloadBot` in the working directory
+A 1: Execute the command `./DownloadBot` in the working directory
 
-### Q 2： None of the versions in release are working on my server, what should I do?
-A 2：Self-compilation
+If `-bash:./DownloadBot: Permission denied` is displayed, enter `chmod 777 ./DownloadBot` to grant Permission.
+
+### Q 2:  None of the versions in release are working on my server, what should I do?
+A 2: Self-compilation
 
 ```bash
 # CentOS for example
-yum install go # If you are prompted for a package that cannot be found, install epel first：yum install epel-release
+yum install go # If you are prompted for a package that cannot be found, install epel first: yum install epel-release
 
 go version # If the version number is displayed, the installation is successful and the version needs to be greater than or equal to 1.15.0
 cd /root
@@ -24,11 +26,11 @@ go build
 ./DownloadBot
 ```
 
-### Q 3：Prompt `open ./config.json: no such file or directory` when running
+### Q 3: Prompt `open ./config.json: no such file or directory` when running
 
-A 3：Missing configuration file `config.json`，According to [README](https://github.com/gaowanliang/DownloadBot#example-of-a-profile)
+A 3: Missing configuration file `config.json`，According to [README](https://github.com/gaowanliang/DownloadBot#example-of-a-profile)
 
-### Q 4：Run error
+### Q 4: Run error
 
 ```bash
 2021/07/23 01:51:31 strconv.ParseInt: parsing "": invalid syntax
@@ -47,34 +49,34 @@ created by main.tgBot
 D:/program_data/go/DownloadBot/Telegram.go:707 +0x85d
 ```
 
-A 4：There are still some problems with multi-user support, so please use a single user first, i.e. the UserID is filled in with an ID first.
+A 4: There are still some problems with multi-user support, so please use a single user first, i.e. the UserID is filled in with an ID first.
 
 
-### Q 5：How do I download offline?
+### Q 5: How do I download offline?
 
-A 5：Just send a direct link to the file or a BT link directly to your Bot
+A 5: Just send a direct link to the file or a BT link directly to your Bot
 
-### Q 6：How do I delete a file from the download directory?
+### Q 6: How do I delete a file from the download directory?
 
-A 6：The current version of the Bot menu does not have a command, you have to manually enter the command: `Delete files from the download folder` and follow the instructions. It seems that in version 0.4 there is a command in the menu, pending a fix.
+A 6: The current version of the Bot menu does not have a command, you have to manually enter the command: `Delete files from the download folder` and follow the instructions. It seems that in version 0.4 there is a command in the menu, pending a fix.
 
 PS: If you are controlling a remote server to download files through this software, and the downloaded files are on the remote server, naturally this program cannot access the files on the remote server, so it is stipulated that the IP address you set needs to be the local IP address before you are allowed to use the upload/move/delete functions. So only if the IP address is `localhost` or `127.0.0.1` will uploads be allowed.
 
-### Q 7：How do I binding for a OneDrive account?
+### Q 7: How do I binding for a OneDrive account?
 
-A 7：Send `Upload all files in the download folder` to Bot, click `1` (OneDrive) in the back menu, click Add and you will get a URL. open the URL in your browser and log in to authorise your OneDrive account, your browser will then jump to a URL that will not open. Copy it and send it to Bot, the binding is successful.
+A 7: Send `Upload all files in the download folder` to Bot, click `1` (OneDrive) in the back menu, click `New` and you will get a URL. open the URL in your browser and log in to authorise your OneDrive account, your browser will then jump to a URL that will not open. Copy it and send it to Bot, the binding is successful.
 
 You can also use your own API (if the web page suggests that the application is not validated), which you need to compile yourself. See [here](https://github.com/gaowanliang/DownloadBot/issues/30#issuecomment-888344140)
 
-### Q 8：How do I unbinding my OneDrive account?
+### Q 8: How do I unbinding my OneDrive account?
 
- A 8：Delete `. /DownloadBot/info/onedrive/your onedrive account.json`
+ A 8: Delete `./DownloadBot/info/onedrive/your_onedrive_account.json`
 
-PS: There is no problem with binding/unbinding users in this application, you can use multiple accounts at once and they don't interfere with each other
+PS: It's meaningless to say binding/unbinding users in this application, you can use multiple accounts at once and they don't interfere with each other
 
-### Q 9：How to run DownloadBot in the background?
+### Q 9: How to run DownloadBot in the background?
 
-A 9：
+A 9: 
 1. Add `&` to the end of the command, e.g. `. /DownloadBot &` so that the program will still run when SSH is disconnected. 2.
 2. Use `screen`, see https://linuxize.com/post/how-to-use-linux-screen/ for details
 
@@ -82,3 +84,5 @@ A 9：
 ## Contributors
 
 [DullJZ](https://github.com/DullJZ)
+
+[gaowanliang](https://github.com/gaowanliang)

@@ -8,6 +8,8 @@
 
 A 1：在工作目录下执行`./DownloadBot`
 
+如果提示`-bash: ./DownloadBot: Permission denied`，输入`chmod 777 ./DownloadBot` 赋予权限。
+
 ### Q 2： release 中的各个版本均无法在我的服务器上运行，怎么办？
 A 2：自行编译
 
@@ -53,7 +55,7 @@ A 5：直接发送文件直链或BT链接到你的Bot即可
 
 ### Q 6：如何删除下载目录中的文件？
 
-A 6：目前版本中Bot菜单没有指令，必须手动输入指令：`Delete files from the download folder`，然后按照提示操作即可。似乎0.4版本的菜单中有指令，等待修复。
+A 6：~~目前版本中Bot菜单没有指令，必须手动输入指令~~（似乎有了？）：`Delete files from the download folder`，然后按照提示操作即可。
 
 PS：如果您是通过本软件控制远程服务器下载文件，下载的文件在远程服务器，本程序自然无法访问远程服务器上的文件，因此规定您设置的IP地址需要是本机IP地址，才允许使用上传/移动/删除等功能。所以只有当IP地址为`localhost`或者是`127.0.0.1`时，才允许上传。
 
@@ -78,3 +80,5 @@ A 9：
 ## 文档贡献者
 
 [DullJZ](https://github.com/DullJZ)
+
+[高玩梁](https://github.com/gaowanliang)
