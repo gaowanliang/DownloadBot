@@ -74,8 +74,20 @@ PS：本程序中不存在绑定/解绑用户的问题，你可以一次使用�
 ### Q 9：如何后台运行DownloadBot？
 
 A 9：
-1. 在指令后添加`&`，如`./DownloadBot &`，这样可以在SSH断开时依旧运行本程序。
-2. 使用`screen`，具体方法参考 https://www.runoob.com/linux/linux-comm-screen.html
+1. 在指令后添加`&`，如`./DownloadBot &`，这样可以在SSH断开时依旧运行本程序。所以为什么不使用脚本每隔一定时间检查程序运行状态？
+```bash
+#!/bin/bash --posix 
+
+while true  
+do   
+    procnum=` ps -ef|grep "DownloadBot"|grep -v grep|wc -l`  
+   if [ $procnum -eq 0 ]; then  
+       cd /home/DownloadBot/ && /home/DownloadBot/DownloadBot &  ## bot所在的目录，由于bot读取配置文件的路径是./config.json，故前面的cd操作不能省略
+   fi  
+   sleep 30  ## 间隔30s检查程序运行状态
+done
+```
+3. 使用`screen`，具体方法参考 https://www.runoob.com/linux/linux-comm-screen.html
 
 ## 文档贡献者
 

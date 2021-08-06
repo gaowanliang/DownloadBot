@@ -77,8 +77,20 @@ PS: It's meaningless to say binding/unbinding users in this application, you can
 ### Q 9: How to run DownloadBot in the background?
 
 A 9: 
-1. Add `&` to the end of the command, e.g. `. /DownloadBot &` so that the program will still run when SSH is disconnected. 2.
-2. Use `screen`, see https://linuxize.com/post/how-to-use-linux-screen/ for details
+1. Add `&` to the end of the command, e.g. `. /DownloadBot &` so that the program will still run when SSH is disconnected. Why not use a script to check the program's running status every certain time?
+```bash
+#!/bin/bash --posix 
+
+while true  
+do   
+    procnum=` ps -ef|grep "DownloadBot"|grep -v grep|wc -l`  
+   if [ $procnum -eq 0 ]; then  
+       cd /home/DownloadBot/ && /home/DownloadBot/DownloadBot &  ## your bot location
+   fi  
+   sleep 30  ## check status every 30 seconds
+done
+```
+3. Use `screen`, see https://linuxize.com/post/how-to-use-linux-screen/ for details
 
 
 ## Contributors
