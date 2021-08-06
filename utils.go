@@ -481,8 +481,9 @@ func GetMemPercent() float64 {
 }
 
 func GetDiskPercent() float64 {
-	parts, _ := disk.Partitions(true)
-	diskInfo, _ := disk.Usage(parts[0].Mountpoint)
+//	parts, _ := disk.Partitions(true)
+//	diskInfo, _ := disk.Usage(parts[0].Mountpoint)
+	diskInfo, _ := disk.Usage(info.DownloadFolder)
 	return diskInfo.UsedPercent
 }
 
