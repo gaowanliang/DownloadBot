@@ -17,10 +17,10 @@ import (
 	tgBotApi "github.com/go-telegram-bot-api/telegram-bot-api"
 )
 
-// SuddenMessageChan receive active requests from WebSocket
+// SuddenMessageChan is a channel for reminding when an emergency message occurs, such as download start and download end
 var SuddenMessageChan = make(chan string, 3)
 
-// TMSelectMessageChan receive active requests from WebSocket
+// TMSelectMessageChan is a channel for reminding when you upload a torrent file or send a magnet(TM is Torrent/Magnet)
 var TMSelectMessageChan = make(chan string, 3)
 
 var FileControlChan = make(chan string, 3)
@@ -37,7 +37,7 @@ func setCommands(bot *tgBotApi.BotAPI) {
 	})
 }
 
-// SuddenMessage receive active requests from WebSocket
+// SuddenMessage is a function for dealing when an emergency message occurs, such as download start and download end
 func SuddenMessage(bot *tgBotApi.BotAPI) {
 	for {
 		a := <-SuddenMessageChan
@@ -54,103 +54,229 @@ func SuddenMessage(bot *tgBotApi.BotAPI) {
 	}
 }
 
-// TMSelectMessage receive active requests from WebSocket
+// TMSelectMessage is a function for dealing when you upload a torrent file or send a magnet,this function will interrupt the download and output the file list of the torrent file or magnet (TM is Torrent/Magnet)
 func TMSelectMessage(bot *tgBotApi.BotAPI) {
-	var MessageID = 0
-	var lastGid = ""
-	var lastFilesInfo [][]string
+	var MessageID []int
 	myID := toInt64(info.UserID)
+	selectFileList := make([][2]int, 0)
+	directoryTree := make(map[string]interface{}, 0)
 	for {
 		a := <-TMSelectMessageChan
 		b := strings.Split(a, "~")
+		// 0 is gid, 1 is control sign(Start/SelectAll...) / selected num
 		gid := b[0]
-		var fileList [][]string
+
 		downloadFilesCount := 0
 		if len(b) != 1 {
-			if b[1] == "Start" {
-				setTMDownloadFilesAndStart(gid, lastFilesInfo)
-				bot.Send(tgBotApi.NewDeleteMessage(myID, MessageID))
+			if b[1] == "Start" { //click start
+				setTMDownloadFilesAndStart(gid, selectFileList)
+				for _, val := range MessageID {
+					bot.Send(tgBotApi.NewDeleteMessage(myID, val))
+				}
+				MessageID = make([]int, 0)
+				selectFileList = make([][2]int, 0)
+				directoryTree = make(map[string]interface{}, 0)
+				continue
+			} else if b[1] == "cancel" {
+				for _, val := range MessageID {
+					bot.Send(tgBotApi.NewDeleteMessage(myID, val))
+				}
+				MessageID = make([]int, 0)
+				selectFileList = make([][2]int, 0)
+				directoryTree = make(map[string]interface{}, 0)
+				aria2Rpc.ForceRemove(gid)
 				continue
 			}
-			for i := 0; i < len(lastFilesInfo); i++ {
-				if lastFilesInfo[i][2] == "true" {
+			for i := 0; i < len(selectFileList); i++ {
+				if selectFileList[i][0] == 1 && selectFileList[i][1] >= 0 {
 					downloadFilesCount++
 				}
 			}
 			switch b[1] {
-			case "selectAll":
-				for i := 0; i < len(lastFilesInfo); i++ {
-					lastFilesInfo[i][2] = "true"
+			case "selectAll": //click select all
+				for i := 0; i < len(selectFileList); i++ {
+					selectFileList[i][0] = 1
 				}
-			case "invert":
-				for i := 0; i < len(lastFilesInfo); i++ {
-					if lastFilesInfo[i][2] == "true" {
-						lastFilesInfo[i][2] = "false"
+			case "tmMode1": //click selectBiggestFile
+				biggestFileIndex := selectBiggestFile(gid)
+				for i := 0; i < len(selectFileList); i++ {
+					if selectFileList[i][1] != biggestFileIndex {
+						selectFileList[i][0] = 0
 					} else {
-						lastFilesInfo[i][2] = "true"
-					}
-				}
-				if downloadFilesCount == len(lastFilesInfo) {
-					lastFilesInfo[0][2] = "true"
-				}
-			case "tmMode1":
-				biggestFileIndex := selectBigestFile(gid)
-				for i := 0; i < len(lastFilesInfo); i++ {
-					if i != biggestFileIndex {
-						lastFilesInfo[i][2] = "false"
-					} else {
-						lastFilesInfo[i][2] = "true"
-					}
+						selectFileList[i][0] = 1
+						if i != 0 && selectFileList[i-1][1] == -1 {
+							// if there is only one file in the folder to which this file belongs, select it as well
+							selectFileList[i-1][0] = 1
+						}
 
+					}
 				}
-			case "tmMode2":
-				for i := 0; i < len(lastFilesInfo); i++ {
-					lastFilesInfo[i][2] = "false"
-				}
+			case "tmMode2": // click smart ....
 				bigFilesIndex := selectBigFiles(gid)
+				index2Original := make(map[int]int, 0)
+				for i := 0; i < len(selectFileList); i++ {
+					selectFileList[i][0] = 0
+					if selectFileList[i][1] > 0 { // node do not need records
+						index2Original[selectFileList[i][1]] = i
+					}
+				}
 				for _, i := range bigFilesIndex {
-					lastFilesInfo[i][2] = "true"
+					selectFileList[index2Original[i]][0] = 1
 				}
 			default:
 				i := toInt(b[1])
-				i--
-				if lastFilesInfo[i][2] == "true" && downloadFilesCount > 1 {
-					lastFilesInfo[i][2] = "false"
-				} else {
-					lastFilesInfo[i][2] = "true"
+				i--                         // sequence num displayed is more than the subscript,so reduce it
+				if downloadFilesCount > 1 { // make sure that at least one file will be downloaded
+					if selectFileList[i][1] >= 0 {
+						if selectFileList[i][0] == 1 {
+							selectFileList[i][0] = 0
+						} else {
+							selectFileList[i][0] = 1
+						}
+					} else { //if select node
+						if selectFileList[i][0] == 1 {
+							selectFileList[i][0] = 0
+							for s := 1; s < selectFileList[i][1]*-1; s++ {
+								selectFileList[i+s][0] = 0
+								downloadFilesCount--
+							}
+							if downloadFilesCount < 1 {
+								selectFileList[i][0] = 1
+								for s := 1; s < selectFileList[i][1]*-1; s++ {
+									selectFileList[i+s][0] = 1
+									downloadFilesCount++
+								}
+							}
+						} else {
+							selectFileList[i][0] = 1
+							for s := 1; s < selectFileList[i][1]*-1; s++ {
+								selectFileList[i+s][0] = 1
+							}
+						}
+					}
 				}
-
 			}
-			fileList = lastFilesInfo
+
+			for i, val := range selectFileList { // check wheathe all files under all nodes select status
+				if val[1] < 0 {
+					allSelected := true
+					allNotSelected := true
+					// log.Println(i+1,i+1+val[1]*-1-1,val[1],)
+					for _, val1 := range selectFileList[i+1 : i+1+val[1]*-1-1] {
+						if val1[0] == 0 {
+							allSelected = false
+						} else if val1[0] == 1 {
+							allNotSelected = false
+						}
+						if !allSelected && !allNotSelected {
+							break
+						}
+					}
+					if !allSelected && !allNotSelected { // partially selected, partially not be selected
+						selectFileList[i][0] = -1
+					} else if allSelected {
+						selectFileList[i][0] = 1
+					} else {
+						selectFileList[i][0] = 0
+					}
+
+				}
+			}
 		} else {
-			fileList = formatTMFiles(gid)
+			fileList := formatTMFiles(gid)
+			index := 1
+			for i, file := range fileList {
+				pathClass(fmt.Sprintf("%s|%s|%d", file[0], file[1], i+1), &directoryTree)
+				//log.Printf("%s|%s|%d\n", file[0], file[1], i+1)
+				index++
+			}
 		}
 
 		text := fmt.Sprintf("%s %s\n", tellName(aria2Rpc.TellStatus(gid)), locText("fileDirectoryIsAsFollows"))
 		Keyboards := make([][]tgBotApi.InlineKeyboardButton, 0)
 		inlineKeyBoardRow := make([]tgBotApi.InlineKeyboardButton, 0)
-		index := 1
 
-		for i, file := range fileList {
-			isSelect := "⬜"
-			if file[2] == "true" {
-				isSelect = "✅"
+		fileListGoTree, _, _ := generateGoTree(directoryTree, 0, &selectFileList)
+		fileListTreeLine := strings.Split(fileListGoTree[0].Print(), "\n")
+		fileListTreeLineCount := len(fileListTreeLine)
+		characterCount := len(text)
+		r, err := regexp.Compile(`[✅⬜](\d+)`)
+		dropErr(err)
+		startAndEndIndex := []int{1, 0}
+		msgCount := 0
+
+		for i, line := range fileListTreeLine {
+			if fileListTreeLineCount != i+1 && characterCount+len(fileListTreeLine[i+1]) > 4096 {
+
+				msg := tgBotApi.NewMessage(myID, text)
+				msgCount++
+				//lastFilesInfo = fileList
+				index := 0
+				for j := startAndEndIndex[0]; j <= startAndEndIndex[1]; j++ {
+					inlineKeyBoardRow = append(inlineKeyBoardRow, tgBotApi.NewInlineKeyboardButtonData(fmt.Sprint(j), gid+"~"+fmt.Sprint(j)+":6"))
+					index++
+					if index%7 == 0 {
+						Keyboards = append(Keyboards, inlineKeyBoardRow)
+						inlineKeyBoardRow = make([]tgBotApi.InlineKeyboardButton, 0)
+					}
+
+				}
+				if len(inlineKeyBoardRow) != 0 {
+					Keyboards = append(Keyboards, inlineKeyBoardRow)
+				}
+				if msgCount > len(MessageID) {
+					msg.ReplyMarkup = tgBotApi.NewInlineKeyboardMarkup(Keyboards...)
+					res, err := bot.Send(msg)
+					MessageID = append(MessageID, res.MessageID)
+					dropErr(err)
+				} else {
+					newMsg := tgBotApi.NewEditMessageTextAndMarkup(myID, MessageID[msgCount-1], text, tgBotApi.NewInlineKeyboardMarkup(Keyboards...))
+					bot.Send(newMsg)
+				}
+
+				Keyboards = make([][]tgBotApi.InlineKeyboardButton, 0)
+				inlineKeyBoardRow = make([]tgBotApi.InlineKeyboardButton, 0)
+
+				//lastGid = gid
+				characterCount = 0
+				text = "·"
+				startAndEndIndex[0] = startAndEndIndex[1] + 1
 			}
-			text += fmt.Sprintf("%s %d: %s    %s\n", isSelect, i+1, file[0], file[1])
-			inlineKeyBoardRow = append(inlineKeyBoardRow, tgBotApi.NewInlineKeyboardButtonData(fmt.Sprint(index), gid+"~"+fmt.Sprint(index)+":6"))
+
+			if text == "·" {
+				text += line[1:] + "\n"
+			} else {
+				text += line + "\n"
+			}
+			characterCount += len(line + "\n")
+			res := r.FindStringSubmatch(line)
+			if res != nil {
+				startAndEndIndex[1] = toInt(res[1])
+			}
+		}
+
+		// log.Println(text)
+		text += locText("pleaseSelectTheFileYouWantToDownload")
+		if msgCount > 2 {
+			text += "\n" + locText("tmFileTooMany")
+		}
+		index := 0
+		for j := startAndEndIndex[0]; j <= startAndEndIndex[1]; j++ {
+			inlineKeyBoardRow = append(inlineKeyBoardRow, tgBotApi.NewInlineKeyboardButtonData(fmt.Sprint(j), gid+"~"+fmt.Sprint(j)+":6"))
+			index++
 			if index%7 == 0 {
 				Keyboards = append(Keyboards, inlineKeyBoardRow)
 				inlineKeyBoardRow = make([]tgBotApi.InlineKeyboardButton, 0)
 			}
-			index++
+
 		}
-		text += locText("pleaseSelectTheFileYouWantToDownload")
+
 		if len(inlineKeyBoardRow) != 0 {
 			Keyboards = append(Keyboards, inlineKeyBoardRow)
 		}
 		inlineKeyBoardRow = make([]tgBotApi.InlineKeyboardButton, 0)
 		inlineKeyBoardRow = append(inlineKeyBoardRow, tgBotApi.NewInlineKeyboardButtonData(locText("selectAll"), gid+"~selectAll"+":7"))
-		inlineKeyBoardRow = append(inlineKeyBoardRow, tgBotApi.NewInlineKeyboardButtonData(locText("invert"), gid+"~invert"+":7"))
+		inlineKeyBoardRow = append(inlineKeyBoardRow, tgBotApi.NewInlineKeyboardButtonData(locText("cancel"), gid+"~cancel"+":7"))
 		Keyboards = append(Keyboards, inlineKeyBoardRow)
 		inlineKeyBoardRow = make([]tgBotApi.InlineKeyboardButton, 0)
 		inlineKeyBoardRow = append(inlineKeyBoardRow, tgBotApi.NewInlineKeyboardButtonData(locText("tmMode1"), gid+"~tmMode1"+":7"))
@@ -159,18 +285,19 @@ func TMSelectMessage(bot *tgBotApi.BotAPI) {
 		inlineKeyBoardRow = make([]tgBotApi.InlineKeyboardButton, 0)
 		inlineKeyBoardRow = append(inlineKeyBoardRow, tgBotApi.NewInlineKeyboardButtonData(locText("startDownload"), gid+"~Start"+":7"))
 		Keyboards = append(Keyboards, inlineKeyBoardRow)
+
 		//myID, err := strconv.ParseInt(info.UserID, 10, 64)
 		//dropErr(err)
-		msg := tgBotApi.NewMessage(myID, text)
-		lastFilesInfo = fileList
-		if lastGid != gid {
+
+		//lastFilesInfo = fileList
+		if len(MessageID) < msgCount+1 {
+			msg := tgBotApi.NewMessage(myID, text)
 			msg.ReplyMarkup = tgBotApi.NewInlineKeyboardMarkup(Keyboards...)
 			res, err := bot.Send(msg)
 			dropErr(err)
-			MessageID = res.MessageID
-			lastGid = gid
+			MessageID = append(MessageID, res.MessageID)
 		} else {
-			newMsg := tgBotApi.NewEditMessageTextAndMarkup(myID, MessageID, text, tgBotApi.NewInlineKeyboardMarkup(Keyboards...))
+			newMsg := tgBotApi.NewEditMessageTextAndMarkup(myID, MessageID[msgCount], text, tgBotApi.NewInlineKeyboardMarkup(Keyboards...))
 			bot.Send(newMsg)
 		}
 

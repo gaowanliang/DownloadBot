@@ -96,32 +96,23 @@ func (p *printer) printText(text string, spaces []bool, last bool) string {
 		indicator = lastItem
 	}
 	var newText = text
-	var leftCount = 36 - len(indicator)
+	var leftCount = 36 - len(indicator) // the maximum length of the line is 36 characters, but need to subtract the length of the draw table characters
 
 	if leftCount > 0 {
-		var newLineLeftCount = leftCount + 4
-		var flag = true
-		var subtractText = 0
 		newText = ""
-		for i, val := range text {
-			if flag {
-				if i%leftCount == 0 && i != 0 {
-					newText += string(val) + "\n"
-					flag = false
-					subtractText = len(newText) - 1
-					continue
-				}
-			} else {
-				if (i-subtractText)%newLineLeftCount == 0 && i-subtractText != 0 {
-					newText += string(val) + "\n"
-					subtractText += len(newText) - 1
-					continue
-				}
+		runeText := []rune(text) // if you file name is Chinese,Japanese,Korean and other unicode characters, the step value of for loop  will become 2, which will affect the mod judgment, but if it is converted to the []rune, this question will be solved
+		for i, val := range runeText {
+			if i%leftCount == 0 && i != 0 && i != len(text)-1 { // when up to length, need to add line break
+				newText += string(val) + "\n"
+				continue
 			}
 			newText += string(val)
 		}
 	}
-
+	if newText[len(newText)-1]=='\n'{
+		newText=newText[:len(newText)-1]
+	}
+	//newText = strings.ReplaceAll(newText, "\n\n", "\n")
 	var out string
 	lines := strings.Split(newText, "\n")
 	for i := range lines {
@@ -154,10 +145,3 @@ func (p *printer) printItems(t []Tree, spaces []bool) string {
 	}
 	return result
 }
-
-/*
-func addLineFeed(text string, layers int, limit int) string {
-
-
-}
-*/

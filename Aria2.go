@@ -251,9 +251,11 @@ func download(uri string) bool {
 	return true
 }
 
+//formatTMFiles is a function that can format the file information of torrent/magnet file, the return value is [][2]string,0 is file name,1 is file size
 func formatTMFiles(gid string) [][]string {
 	var fileList [][]string
 	rawList, err := aria2Rpc.GetFiles(gid)
+
 	dropErr(err)
 	// log.Printf("%+v", rawList)
 	for _, file := range rawList {
@@ -268,30 +270,30 @@ func formatTMFiles(gid string) [][]string {
 	return fileList
 }
 
-func setTMDownloadFilesAndStart(gid string, FilesList [][]string) {
+func setTMDownloadFilesAndStart(gid string, FilesList [][2]int) {
 	selectFile := ""
-	for i, file := range FilesList {
-		if file[2] == "true" {
-			selectFile += fmt.Sprint(i+1) + ","
+	for _, file := range FilesList {
+		if file[0] == 1 && file[1] >= 0 {
+			selectFile += fmt.Sprint(file[1]) + ","
 		}
 	}
 	aria2Rpc.ChangeOption(gid, rpc.Option{
-		"select-file": selectFile[:len(selectFile)-1],
+		"select-file": selectFile[:len(selectFile)-1], // remove the last comma
 	})
 	TMAllowDownloads[gid] = 0
 	aria2Rpc.Unpause(gid)
 
 }
-func selectBigestFile(gid string) int {
+func selectBiggestFile(gid string) int {
 	index := 0
 	rawList, err := aria2Rpc.GetFiles(gid)
 	dropErr(err)
 	for i := 0; i < len(rawList); i++ {
-		if rawList[i].Length > rawList[index].Length {
+		if toInt(rawList[i].Length) > toInt(rawList[index].Length) {
 			index = i
 		}
 	}
-	return index
+	return index + 1
 }
 func selectBigFiles(gid string) []int {
 	indexs := make([]int, 0)
@@ -308,7 +310,7 @@ func selectBigFiles(gid string) []int {
 		dist, err := strconv.ParseFloat(rawList[i].Length, 64)
 		dropErr(err)
 		if dist > avgSize {
-			indexs = append(indexs, i)
+			indexs = append(indexs, i+1)
 		}
 	}
 	return indexs

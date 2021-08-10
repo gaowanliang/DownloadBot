@@ -1,5 +1,4 @@
 [简体中文](docs/README_zh-CN.md) [繁體中文](docs/README_zh-TW.md)
-[简体中文问答文档](docs/Q&A_zh-CN.md)
 
 # DownloadBot
 
@@ -98,7 +97,7 @@ At the same time, communication via the bot protocol facilitates use on machines
   - [ ] Other functions
     - [x] File tree output system
         - [x] File tree output for simple folders
-        - [ ] Use images instead of text output for complex folder structures
+        - [x] Use multi message output for complex folder structures
     - [ ] Get all CIDs used in DMM via actor ID
     - [ ] Query the movie parameters in "ikoa" (using mahuateng).
     - [ ] Get the numbers of all actors via the javlibary actors' website. 
