@@ -106,5 +106,7 @@
     "uploadGoogleDriveComplete": "DownloadFolder upload to Google Drive complete",
     "oneDriveUploadFailAndRetry": "OneDrive account `%s` \n There was a connection problem when uploading `%s`. Retrying. It's the %d times retrying",
     "googleDriveUploadTip1": "OneDrive account `%s` \n Uploading `%s` \n Size:`%s` Complete: `%s`\nProgress: *『%d/%d』*  \nSpeed:`%s` \nTime: `%d s`",
-    "tmFileTooMany": "There are too many files in torrent. The refresh will be delayed after selecting the option. Please wait patiently."
+    "tmFileTooMany": "There are too many files in torrent. The refresh will be delayed after selecting the option. Please wait patiently.",
+    "tgCommandSetMaxLengthDes":  "Set the maximum number of characters displayed per line when outputting the file tree",
+    "commandSetMaxLengthHelpRes": "You need to enter a number along with the command that represents the maximum number of characters per line you want to display when outputting the file tree, for example:\n/setMaxLength 36"
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	goTree "DownloadBot/src/gotree"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -33,6 +34,10 @@ func setCommands(bot *tgBotApi.BotAPI) {
 		}, {
 			Command:     "myid",
 			Description: locText("tgCommandMyIDDes"),
+		},
+		{
+			Command:     "setMaxLength",
+			Description: locText("tgCommandSetMaxLengthDes"),
 		},
 	})
 }
@@ -200,7 +205,7 @@ func TMSelectMessage(bot *tgBotApi.BotAPI) {
 		fileListTreeLine := strings.Split(fileListGoTree[0].Print(), "\n")
 		fileListTreeLineCount := len(fileListTreeLine)
 		characterCount := len(text)
-		r, err := regexp.Compile(`[✅⬜](\d+)`)
+		r, err := regexp.Compile(`[✅⬜〰](\d+)`)
 		dropErr(err)
 		startAndEndIndex := []int{1, 0}
 		msgCount := 0
@@ -659,7 +664,7 @@ func uploadFiles(chatMsgID int, chatMsg string, bot *tgBotApi.BotAPI) {
 
 var activeRefreshControl = 0
 
-// activeRefresh 刷新下载进度显示
+// activeRefresh refresh the download info
 func activeRefresh(chatMsgID int, bot *tgBotApi.BotAPI, ticker *time.Ticker, flag int) {
 	var MessageID = 0
 	myID := toInt64(info.UserID)
@@ -1062,6 +1067,14 @@ func tgBot(BotKey string, wg *sync.WaitGroup) {
 					msg.Text = locText("commandHelpRes")
 				case "myid":
 					msg.Text = fmt.Sprintf(locText("commandMyIDRes"), update.Message.Chat.ID)
+				case "setMaxLength":
+					i, err := strconv.Atoi(strings.ReplaceAll(update.Message.Text, "/setMaxLength ", ""))
+					if err !=nil{
+						msg.Text =locText("commandSetMaxLengthHelpRes")
+					}else{
+						goTree.SetMaxLength(i)
+						msg.Text =locText("operationSuccess")
+					}
 				}
 			} else {
 				msg.Text = locText("doNotHavePermissionControl")

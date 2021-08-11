@@ -13,6 +13,8 @@ const (
 	lastItem     = "└── "
 )
 
+var maximumLength = 36
+
 type (
 	tree struct {
 		text  string
@@ -36,6 +38,10 @@ type (
 		Print(Tree) string
 	}
 )
+
+func SetMaxLength(a int) {
+	maximumLength = a
+}
 
 //New returns a new GoTree.Tree
 func New(text string) Tree {
@@ -96,7 +102,7 @@ func (p *printer) printText(text string, spaces []bool, last bool) string {
 		indicator = lastItem
 	}
 	var newText = text
-	var leftCount = 36 - len(indicator) // the maximum length of the line is 36 characters, but need to subtract the length of the draw table characters
+	var leftCount = maximumLength - len(indicator) // the maximum length of the line is 36 characters, but need to subtract the length of the draw table characters
 
 	if leftCount > 0 {
 		newText = ""
@@ -109,8 +115,8 @@ func (p *printer) printText(text string, spaces []bool, last bool) string {
 			newText += string(val)
 		}
 	}
-	if newText[len(newText)-1]=='\n'{
-		newText=newText[:len(newText)-1]
+	if newText[len(newText)-1] == '\n' {
+		newText = newText[:len(newText)-1]
 	}
 	//newText = strings.ReplaceAll(newText, "\n\n", "\n")
 	var out string

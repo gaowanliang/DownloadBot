@@ -12,7 +12,7 @@
 (Currently) 🤖 A Telegram Bot that can control your Aria2 server, control server files and also upload to OneDrive / Google Drive.
 
 ## 【NOTE】
-Since the author I need to prepare for my graduate exams at the moment, the development progress will be appropriately stalled, I think it is a good idea for the program, so I will keep developing it.
+Since the author I need to prepare for my graduate exams at the moment, the development progress will be appropriately stalled, but I think the idea of this program is very good, so I will keep developing.
 Questions or suggestions are very welcome, and although I can't focus on development on my end, I still log in to GitHub often to check out everyone's suggestions and pr.😀
 
 ## Project significance
@@ -26,6 +26,8 @@ At the same time, communication via the bot protocol facilitates use on machines
 ## Functions realized
 
 <text style="color:red;">**Note: This project is still in beta testing and the Release submitted is for testing purposes only. Downloading it now does not guarantee you stable use, nor does it guarantee that the content ticked below has been implemented. The software is only stable when the submitted version is v1.0 (v1.0 will not implement all of the features below, but it will work properly and stably).**</text>
+
+**Only the checked content is currently implemented**
 
 #### Download method
 - [x] Aria2 control
