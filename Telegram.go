@@ -1026,7 +1026,7 @@ func tgBot(BotKey string, wg *sync.WaitGroup) {
 							msg.Text = locText("errorOneDriveAuthURL")
 						}
 
-					} else if strings.Contains(update.Message.Text, "4/1AY") && len(update.Message.Text) == 62 {
+					} else if strings.Contains(update.Message.Text, "4/1A") && len(update.Message.Text) == 62 {
 						//如果是Google Drive auth code
 						createDriveInfoFolder("./info/googleDrive")
 						FileControlChan <- "close"
