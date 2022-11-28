@@ -9,6 +9,8 @@ import (
 	"net"
 	"net/http"
 	"net/url"
+	"regexp"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -44,6 +46,24 @@ func newHTTPCaller(ctx context.Context, u *url.URL, timeout time.Duration, notif
 	}
 	var wg sync.WaitGroup
 	ctx, cancel := context.WithCancel(ctx)
+
+	if !strings.Contains(u.Host, "localhost") {
+		match, _ := regexp.MatchString(`[a-zA-Z]`, u.Host)
+		// 如果是域名
+		if match {
+			// xxxx:6800
+			h := strings.Split(u.Host, ":")
+
+			host, err := net.LookupHost(h[0])
+			if err != nil {
+				log.Printf("解析域名IP失败 %s", h[0])
+
+			} else {
+				u.Host = host[0] + ":" + h[1]
+			}
+
+		}
+	}
 	h := &httpCaller{uri: u.String(), c: c, cancel: cancel, wg: &wg}
 	if notifer != nil {
 		h.setNotifier(ctx, *u, notifer)
