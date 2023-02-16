@@ -108,5 +108,7 @@
   "googleDriveUploadTip1": "正在向Google Drive帳戶 `%s` 上傳 `%s`\n大小:`%s` 已上傳大小: `%s` 進度: *『%d/%d』*  \n速度:`%s` \n已耗時: `%d s`",
   "tmFileTooMany": "Torrent 內所包含的檔數量過多，選擇選項後刷新會有一定延遲，請耐心等待。",
   "tgCommandSetMaxLengthDes": "設置輸出檔樹時，每行所顯示的最大字元數",
-  "commandSetMaxLengthHelpRes": "您需要輸入命令的同時輸入一個數字，代表您想要輸出檔樹時，每行所顯示的最大字元數，例如：\n/setMaxLength 36"
+  "commandSetMaxLengthHelpRes": "您需要輸入命令的同時輸入一個數字，代表您想要輸出檔樹時，每行所顯示的最大字元數，例如：\n/setMaxLength 36",
+  "loggingSystemStartupException": "日誌系統啟動異常"
 }
+

@@ -6,7 +6,7 @@
 [![GitHub Star](https://img.shields.io/github/stars/gaowanliang/DownloadBot.svg?style=flat-square&label=Star&color=f39c12)](https://github.com/gaowanliang/DownloadBot/stargazers)
 [![GitHub Fork](https://img.shields.io/github/forks/gaowanliang/DownloadBot.svg?style=flat-square&label=Fork&color=8e44ad)](https://github.com/gaowanliang/DownloadBot/network/members)
 
-(目前) 🤖 一個可以控制你的Aria2伺服器、控制伺服器檔，同時可以上傳到OneDrive/Google Drive的Telegram Bot。
+(目前) 🤖 一個分散式跨平臺的，可以控制你的Aria2伺服器、控制伺服器檔，同時可以上傳到OneDrive/Google Drive的Telegram Bot。
 
 ## 意義
 > 以下僅為本程式完成後的設想，目前描述的功能並沒有完全實現，實現的詳情請參考下面的功能實現
@@ -15,11 +15,8 @@
 
 同時，通過機器人協議通信，方便在無法進行內網穿透的機器上進行使用，而且簡化了平時使用下載程式的操作，提高了便利性。對於連結，直接向Bot發送消息就可以直接識別並下載，可以真正刪除下載檔案夾裡的檔，是AriaNG等web面板無法做到的，作為管理下載的工具，及時通知下載完成都是非常的方便的。可以移動檔，對於通過rclone掛載硬碟的使用者可以直接通過本程式進行複製粘貼等操作，無需打開ssh連接VPS進行`cp`操作，也非常的方便。
 
-## 【注意】
-由於作者我目前需要準備研究生考試，所以開發進度會適當停滯，但我認為這個程式的想法非常好，所以我會繼續開發。
-非常歡迎大家提出問題或建議，雖然我這邊不能專注于開發，但我還是會經常登錄GitHub，看看大家的建議和pr😀。
-
 ## 實現
+
 
 <text style="color:red;">**注意：本項目仍處於測試階段，提交的Release僅供測試，現在下載後並不保證您的穩定使用，也不能保證下面所勾選的內容已經被實現。當真正可以正常使用的時候，我會提交 V1.0 版本（V1.0 版本不會實現下面全部功能，但是已經可以正常穩定的使用）**</text>
 
@@ -31,11 +28,10 @@
   - [x] 持久化監控
   - [x] 斷線重連
 - [ ] 多下載伺服器同時控制
-  - [ ] 多伺服器之間通過有公網IP的伺服器進行WebSocket通信
-  - [ ] 允許用戶建立公共WebSocket中繼端，供不方便建立WebSocket通信的用戶進行通信
-  - [ ] 在heroku單獨部署WebSocket中繼端進行中繼
+  - [x] 使用GRPC實現多伺服器下載資訊通知
 - [ ] [SimpleTorrent](https://github.com/boypt/simple-torrent) 控制
 - [ ] qbittorrent 控制
+
 
 #### 機器人協定支援
 
@@ -45,12 +41,14 @@
 - [ ] 騰訊QQ（使用普通QQ用戶來進行交互）
 - [ ] 釘釘機器人
 
+
 #### 功能
 
 - [x] 控制伺服器檔
     - [x] 刪除檔
     - [x] 移動文件
     - [ ] 壓縮檔
+    - [ ] 解壓文件
 - [x] 下載檔案
     - [x] 下載 HTTP/FTP 連結
     - [x] 下載 Magnet 連結
@@ -69,6 +67,7 @@
     - [ ] 自我調整環境存儲空間的 BitTorrent/Magnet 下載
         - [ ] 不下載超過存儲空間的檔
         - [ ] 根據存儲空間分塊多次下載 BitTorrent/Magnet 內的檔
+    - [ ] 根據具體的硬碟容量制定合適的下載列表
     - [ ] 無感覺化的做種功能
       - [ ] 每次下載BitTorrent/Magnet檔後，保留最後一次下載的檔進行做種，直到下一次下載開始。
       - [ ] 可設置每次下載結束後強制做種一段時間
@@ -118,7 +117,7 @@
 2. （可選）您所在地區/國家的Telegram被封鎖？一定要有一個 **HTTP** proxy啟動並運行，您可以設置您的系統環境變數`HTTPS_PROXY`為代理位址來進行代理。
 3. 下載本程式
 4. 在想要執行本程式的根目錄配置`config.json`
-5. 運行可執行檔
+5. 運行可執行檔`./DownloadBot`或`./DownloadBot.exe`。
 
 ## 教程
 
@@ -134,33 +133,55 @@
 <div align="center">
 <img src="./img/3.jpg" height="300px" alt="">  <img src="./img/4.jpg" height="300px" alt="" >  </div>
 
+
 ## 設定檔示例
 
 ```json
 {
-  "aria2-server": "ws://127.0.0.1:5800/jsonrpc",
-  "aria2-key": "xxxxxxxx",
-  "bot-key": "123456789:xxxxxxxxx",
-  "user-id": "123456789",
+  "input": {
+    "aria2": {
+      "aria2-server": "ws://127.0.0.1:6800/jsonrpc",
+      "aria2-key": "123456"
+    }
+  },
+  "output": {
+    "telegram": {
+      "bot-key": "",
+      "user-id": ""
+    }
+  },
   "max-index": 10,
   "sign": "Main Aria2",
-  "language": "zh-CN",
-  "downloadFolder": "C:/aria2/Aria2Data",
-  "moveFolder":"C:/aria2/GoogleDrive"
+  "language": "en",
+  "downloadFolder": "/root/download",
+  "moveFolder": "/root/upload",
+  "server": {
+    "isServer": true,
+    "isMasterServer": true,
+    "serverHost": "127.0.0.1",
+    "serverPort": 23369
+  },
+  "log": {
+    "logPath": "",
+    "errPath": "",
+    "level": "info"
+  }
 }
 ```
 
 #### 各項對應解釋
+* input: 輸入端，目前僅支持aria2
+  * aria2-server：aria2伺服器位址，默認使用websocket連接。如果要使用websocket連接aria2，請務必設置`aria2.conf`內的`enable-rpc=true`
+      。如果不是必須，請儘量設置本地的aria2位址，以便於最大化的使用本程式
+  * aria2-key：`aria2.conf`中`rpc-secret`的值
+* output: 輸出端，目前僅支援telegram
 
-* aria2-server：aria2伺服器位址，默認使用websocket連接。如果要使用websocket連接aria2，請務必設置`aria2.conf`內的`enable-rpc=true`
-  。如果不是必須，請儘量設置本地的aria2位址，以便於最大化的使用本程式
-* aria2-key：`aria2.conf`中`rpc-secret`的值
 * bot-key：Telegram Bot的標識，通過 [@BotFather](https://telegram.me/botfather)進行獲取。
-* user-id：管理員的ID，支援設置多用戶為管理員，不同的用戶之間使用半形逗號`,`分割。如您要設置`user-id`為123465789、987654321和963852741的使用者為管理員，您需要這樣設置：
+* user-id：管理員的ID~~，支援設置多用戶為管理員，不同的用戶之間使用半形逗號`,`分割。如您要設置`user-id`為123465789、987654321和963852741的使用者為管理員，您需要這樣設置：~~
   ```jsonc
   {
     //···
-    "user-id": "123456789,987654321,963852741",
+    "user-id": "123456789",
     //···
   }
   ```
@@ -169,6 +190,15 @@
 * language：機器人輸出的語言
 * downloadFolder：Aria2下載檔案保存的位址。如果不使用，請輸入`""`
 * moveFolder： 要將下載檔案夾的文件移動到的資料夾。如果不使用，請輸入`""`
+* server：伺服器配置
+  * isServer：是否開啟伺服器（false為用戶端）
+  * isMasterServer：是否為主要伺服器
+  * serverHost：如果是用戶端，此項需要填寫伺服器位址，如果是主要伺服器，此項為本機地址
+  * serverPort：如果是用戶端，此項需要填寫伺服器埠，如果是主要伺服器，此項為提供給用戶端的埠
+* log：日誌配置
+  * logPath：日誌檔保存位址，如果不使用，請輸入`""`（目前不支援）
+  * errPath：錯誤日誌檔保存位址，如果不使用，請輸入`""`（目前不支援）
+  * level：日誌等級，可選項為`debug`、`info`、`warn`、`error`、`fatal`，默認為`info`
 
 #### 目前支援的語言及語言標籤
 
@@ -184,4 +214,10 @@
 
 如果您不知道您的 `user-id` ，可以將此項留空，在運行這個機器人後輸入`/myid`，此機器人就會返回您的`user-id`.
 
+
+#### 捐贈
+
+如果您覺得本程式對您有幫助，您可以通過捐贈的方式支持我，謝謝！
+
+https://ko-fi.com/gaowanliang
 

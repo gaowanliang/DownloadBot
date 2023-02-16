@@ -6,7 +6,7 @@
 [![GitHub Star](https://img.shields.io/github/stars/gaowanliang/DownloadBot.svg?style=flat-square&label=Star&color=f39c12)](https://github.com/gaowanliang/DownloadBot/stargazers)
 [![GitHub Fork](https://img.shields.io/github/forks/gaowanliang/DownloadBot.svg?style=flat-square&label=Fork&color=8e44ad)](https://github.com/gaowanliang/DownloadBot/network/members)
 
-(目前) 🤖 一个可以控制你的Aria2服务器、控制服务器文件，同时可以上传到OneDrive/Google Drive的Telegram Bot。
+(目前) 🤖 一个分布式跨平台的，可以控制你的Aria2服务器、控制服务器文件，同时可以上传到OneDrive/Google Drive的Telegram Bot。
 
 ## 意义
 > 以下仅为本程序完成后的设想，目前描述的功能并没有完全实现，实现的详情请参考下面的功能实现
@@ -14,10 +14,6 @@
 这个项目主要就是利用吃灰小盘vps进行离线下载，对于大bt文件进行根据硬盘大小分段下载，每次都下载一部分，然后上传网盘，删除再下载其他部分，直到下载完所有文件。
 
 同时，通过机器人协议通信，方便在无法进行内网穿透的机器上进行使用，而且简化了平时使用下载程序的操作，提高了便利性。对于链接，直接向Bot发送消息就可以直接识别并下载，可以真正删除下载文件夹里的文件，是AriaNG等web面板无法做到的，作为管理下载的工具，及时通知下载完成都是非常的方便的。可以移动文件，对于通过rclone挂载硬盘的用户可以直接通过本程序进行复制粘贴等操作，无需打开ssh连接VPS进行`cp`操作，也非常的方便。
-
-## 【注意】
-由于作者我目前需要准备研究生考试，所以开发进度会适当停滞，但我认为这个程序的想法非常好，所以我会继续开发。
-非常欢迎大家提出问题或建议，虽然我这边不能专注于开发，但我还是会经常登录GitHub，看看大家的建议和pr😀。
 
 ## 实现
 
@@ -32,9 +28,7 @@
   - [x] 持久化监控
   - [x] 断线重连
 - [ ] 多下载服务器同时控制
-  - [ ] 多服务器之间通过有公网IP的服务器进行WebSocket通信
-  - [ ] 允许用户建立公共WebSocket中继端，供不方便建立WebSocket通信的用户进行通信
-  - [ ] 在heroku单独部署WebSocket中继端进行中继
+  - [x] 使用GRPC实现多服务器下载信息通知
 - [ ] [SimpleTorrent](https://github.com/boypt/simple-torrent) 控制
 - [ ] qbittorrent 控制
 
@@ -54,6 +48,7 @@
     - [x] 删除文件
     - [x] 移动文件
     - [ ] 压缩文件
+    - [ ] 解压文件
 - [x] 下载文件
     - [x] 下载 HTTP/FTP 链接
     - [x] 下载 Magnet 链接
@@ -72,6 +67,7 @@
     - [ ] 自适应环境存储空间的 BitTorrent/Magnet 下载
         - [ ] 不下载超过存储空间的文件
         - [ ] 根据存储空间分块多次下载 BitTorrent/Magnet 内的文件
+    - [ ] 根据具体的硬盘容量制定合适的下载列表
     - [ ] 无感觉化的做种功能
       - [ ] 每次下载BitTorrent/Magnet文件后，保留最后一次下载的文件进行做种，直到下一次下载开始。
       - [ ] 可设置每次下载结束后强制做种一段时间
@@ -121,7 +117,7 @@
 2. （可选）您所在地区/国家的Telegram被封锁？一定要有一个 **HTTP** proxy启动并运行，您可以设置您的系统环境变量`HTTPS_PROXY`为代理地址来进行代理。
 3. 下载本程序
 4. 在想要执行本程序的根目录配置`config.json`
-5. 运行可执行文件
+5. 运行可执行文件`./DownloadBot`或`./DownloadBot.exe`。
 
 ## 教程
 
@@ -142,29 +138,50 @@
 
 ```json
 {
-  "aria2-server": "ws://127.0.0.1:5800/jsonrpc",
-  "aria2-key": "xxxxxxxx",
-  "bot-key": "123456789:xxxxxxxxx",
-  "user-id": "123456789",
+  "input": {
+    "aria2": {
+      "aria2-server": "ws://127.0.0.1:6800/jsonrpc",
+      "aria2-key": "123456"
+    }
+  },
+  "output": {
+    "telegram": {
+      "bot-key": "",
+      "user-id": ""
+    }
+  },
   "max-index": 10,
   "sign": "Main Aria2",
-  "language": "zh-CN",
-  "downloadFolder": "C:/aria2/Aria2Data",
-  "moveFolder":"C:/aria2/GoogleDrive"
+  "language": "en",
+  "downloadFolder": "/root/download",
+  "moveFolder": "/root/upload",
+  "server": {
+    "isServer": true,
+    "isMasterServer": true,
+    "serverHost": "127.0.0.1",
+    "serverPort": 23369
+  },
+  "log": {
+    "logPath": "",
+    "errPath": "",
+    "level": "info"
+  }
 }
 ```
 
 #### 各项对应解释
+* input: 输入端，目前仅支持aria2
+  * aria2-server：aria2服务器地址，默认使用websocket连接。如果要使用websocket连接aria2，请务必设置`aria2.conf`内的`enable-rpc=true`
+      。如果不是必须，请尽量设置本地的aria2地址，以便于最大化的使用本程序
+  * aria2-key：`aria2.conf`中`rpc-secret`的值
+* output: 输出端，目前仅支持telegram
 
-* aria2-server：aria2服务器地址，默认使用websocket连接。如果要使用websocket连接aria2，请务必设置`aria2.conf`内的`enable-rpc=true`
-  。如果不是必须，请尽量设置本地的aria2地址，以便于最大化的使用本程序
-* aria2-key：`aria2.conf`中`rpc-secret`的值
 * bot-key：Telegram Bot的标识，通过 [@BotFather](https://telegram.me/botfather)进行获取。
-* user-id：管理员的ID，支持设置多用户为管理员，不同的用户之间使用半角逗号`,`分割。如您要设置`user-id`为123465789、987654321和963852741的用户为管理员，您需要这样设置：
+* user-id：管理员的ID~~，支持设置多用户为管理员，不同的用户之间使用半角逗号`,`分割。如您要设置`user-id`为123465789、987654321和963852741的用户为管理员，您需要这样设置：~~
   ```jsonc
   {
     //···
-    "user-id": "123456789,987654321,963852741",
+    "user-id": "123456789",
     //···
   }
   ```
@@ -173,6 +190,15 @@
 * language：机器人输出的语言
 * downloadFolder：Aria2下载文件保存的地址。如果不使用，请输入`""`
 * moveFolder： 要将下载文件夹的文件移动到的文件夹。如果不使用，请输入`""`
+* server：服务器配置
+  * isServer：是否开启服务器（false为客户端）
+  * isMasterServer：是否为主服务器
+  * serverHost：如果是客户端，此项需要填写服务器地址，如果是主服务器，此项为本机地址
+  * serverPort：如果是客户端，此项需要填写服务器端口，如果是主服务器，此项为提供给客户端的端口
+* log：日志配置
+  * logPath：日志文件保存地址，如果不使用，请输入`""`（目前不支持）
+  * errPath：错误日志文件保存地址，如果不使用，请输入`""`（目前不支持）
+  * level：日志等级，可选项为`debug`、`info`、`warn`、`error`、`fatal`，默认为`info`
 
 #### 目前支持的语言及语言标签
 
@@ -187,3 +213,10 @@
 #### 关于user-id
 
 如果您不知道您的 `user-id` ，可以将此项留空，在运行这个机器人后输入`/myid`，此机器人就会返回您的`user-id`.
+
+
+#### 捐赠
+
+如果您觉得这个项目对您有帮助，可以通过以下方式进行捐赠：
+
+https://afdian.net/a/gaowanliang

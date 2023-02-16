@@ -9,11 +9,7 @@
 [![GitHub Fork](https://img.shields.io/github/forks/gaowanliang/DownloadBot.svg?style=flat-square&label=Fork&color=8e44ad)](https://github.com/gaowanliang/DownloadBot/network/members)
 
 
-(Currently) 🤖 A Telegram Bot that can control your Aria2 server, control server files and also upload to OneDrive / Google Drive.
-
-## 【NOTE】
-Since the author I need to prepare for my graduate exams at the moment, the development progress will be appropriately stalled, but I think the idea of this program is very good, so I will keep developing.
-Questions or suggestions are very welcome, and although I can't focus on development on my end, I still log in to GitHub often to check out everyone's suggestions and pr.😀
+(Currently) 🤖 A distributed cross-platform Telegram Bot that can control your Aria2 server, control server files and also upload to OneDrive / Google Drive.
 
 ## Project significance
 > The following is only a vision of what this program will look like when it is completed, the functions described so far are not fully implemented, please refer to the following [Functions realized](#functions-realized) for details of implementation
@@ -34,16 +30,14 @@ At the same time, communication via the bot protocol facilitates use on machines
   - [x] Persistent monitoring
   - [x] Automatic reconnection after disconnection
 - [ ] Multi download server control at the same time
-  - [ ] WebSocket communication between multiple servers via a server with a public IP
-  - [ ] Allow users to create public WebSocket relays for users who are not comfortable establishing WebSocket communication
-  - [ ] Deploy a separate WebSocket relay in heroku for relaying
+  - [x] Multi server download information notification using GRPC
 - [ ] [SimpleTorrent](https://github.com/boypt/simple-torrent) control
 - [ ] qbittorrent control
 
 
 #### The Bot protocol supports
 - [x] Telegram Bot
-  - [x] Support multi-user use
+  - [ ] Support multi-user use
   - [ ] Support group use
 - [ ] Tencent QQ (Use regular QQ users to interact)
 - [ ] DingTalk Bot
@@ -144,34 +138,65 @@ At the same time, communication via the bot protocol facilitates use on machines
 
 ```json
 {
-    "aria2-server": "ws://127.0.0.1:5800/jsonrpc",
-    "aria2-key": "xxxxxxxx",
-    "bot-key": "123456789:xxxxxxxxx",
-    "user-id": "123456789",
-    "max-index": 10,
-    "sign":"Main Aria2",
-    "language":"zh-CN",
-    "downloadFolder":"C:/aria2/Aria2Data",
-    "moveFolder":"C:/aria2/GoogleDrive"
+  "input": {
+    "aria2": {
+      "aria2-server": "ws://127.0.0.1:6800/jsonrpc",
+      "aria2-key": "123456"
+    }
+  },
+  "output": {
+    "telegram": {
+      "bot-key": "",
+      "user-id": ""
+    }
+  },
+  "max-index": 10,
+  "sign": "Main Aria2",
+  "language": "en",
+  "downloadFolder": "/root/download",
+  "moveFolder": "/root/upload",
+  "server": {
+    "isServer": true,
+    "isMasterServer": true,
+    "serverHost": "127.0.0.1",
+    "serverPort": 23369
+  },
+  "log": {
+    "logPath": "",
+    "errPath": "",
+    "level": "info"
+  }
 }
 ```
 #### Corresponding explanations
-* aria2-server : Aria2 server address. Websocket connection is used by default. If you want to use websocket to connect to aria2, be sure to set `enable-rpc=true` in `aria2.conf`. If not necessary, please try to **set the local aria2 address**, in order to maximize the use of this program
-* aria2-key : The value of `rpc-secret` in `aria2.conf`
-* bot-key : ID of telegram Bot, get it by using [@BotFather](https://telegram.me/botfather)
-* user-id : The ID of the administrator. It supports setting multiple users as administrators. Different users are separated by commas `,` . If you want to set the users whose `user-id` are 123465789, 987654321 and 963852741 as administrators, you need to set them as follows:
-  ```jsonc
-  {
-    //···
-    "user-id": "123456789,987654321,963852741",
-    //···
-  }
-  ```
+* input : Input method, currently only supports aria2
+  
+  * aria2-server : Aria2 server address. Websocket connection is used by default. If you want to use websocket to connect to aria2, be sure to set `enable-rpc=true` in `aria2.conf`. If not necessary, please try to **set the local aria2 address**, in order to maximize the use of this program
+  * aria2-key : The value of `rpc-secret` in `aria2.conf`
+* output : Output method, currently only supports telegram
+  * bot-key : ID of telegram Bot, get it by using [@BotFather](https://telegram.me/botfather)
+  * user-id : The ID of the administrator. ~~It supports setting multiple users as administrators. Different users are separated by commas `,` . If you want to set the users whose `user-id` are 123465789, 987654321 and 963852741 as administrators, you need to set them as follows:~~
+    ```jsonc
+    {
+      //···
+      "user-id": "123456789",
+      //···
+    }
+    ```
 * max-index：Maximum display quantity of download information, 10 pieces are recommended (to be improved in the future)
 * sign: Identification of this Bot, If multiple servers are required to connect to the same Bot, the specific server can be determined through this item.
 * language: Language of Bot output
 * downloadFolder: Aria2 download file save address.If you do not use this parameter, enter `""`
 * moveFolder： The folder to which you want to move the files for the `downloadFolder`. If you do not use this parameter, enter `""`
+* server: Server configuration
+  * isServer: Whether to enable server mode, if you want to use this program as a server, set it to `true`(When set to `false`, it means that this machine is a client)
+  * isMasterServer: Whether to enable master server mode, if you want to use this program as a master server, set it to `true`(now must be set to `true`)
+  * serverHost: if it is a client, this item needs to fill in the server address, if it is the main server, this item is the local address
+  * serverPort: If it is a client, this item needs to fill in the server port, if it is the main server, this item is the port provided to the client
+* log: Log configuration
+  * logPath: Log file path, if you do not use this parameter, enter `""`(now invalid)
+  * errPath: Error log file path, if you do not use this parameter, enter `""`(now invalid)
+  * level: Log level, `debug`, `info`, `warn`, `error`, `fatal`, `panic` are supported, the default is `info`
 
 #### Currently supported languages and language tags
 | Languages           | Tag   |
@@ -185,3 +210,7 @@ When you fill in the above language tag in `config.json`, the program will autom
 #### About user-id
 If you don't know your `user-id`, you can leave this field blank and enter `/myid` after running the Bot, and the Bot will return your `user-id`
 
+#### donator
+If you want to support this project, you can donate to the following address, thank you very much!
+
+https://ko-fi.com/gaowanliang

@@ -1,0 +1,30 @@
+{
+  "input": {
+    "aria2": {
+      "aria2-server": "ws://127.0.0.1:6800/jsonrpc",
+      "aria2-key": "123456"
+    }
+  },
+  "output": {
+    "telegram": {
+      "bot-key": "",
+      "user-id": ""
+    }
+  },
+  "max-index": 10,
+  "sign": "Main Aria2",
+  "language": "en",
+  "downloadFolder": "/root/download",
+  "moveFolder": "/root/upload",
+  "server": {
+    "isServer": true,
+    "isMasterServer": true,
+    "serverHost": "127.0.0.1",
+    "serverPort": 23369
+  },
+  "log": {
+    "logPath": "",
+    "errPath": "",
+    "level": "info"
+  }
+}
